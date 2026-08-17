@@ -342,11 +342,13 @@ export default function App() {
   }, []);
 
   // ── Connection status badge ─────────────────────────────────────────────
-  const statusBadge = {
-    connected:  { color: 'bg-emerald-500', icon: <Wifi size={14} />,     label: 'LIVE' },
-    offline:    { color: 'bg-rose-500',    icon: <WifiOff size={14} />,  label: 'OFFLINE' },
-    connecting: { color: 'bg-amber-500',   icon: <Loader2 size={14} className="animate-spin" />, label: 'CONNECTING' },
-  }[connectionStatus];
+  const statusBadge = !isLiveMode
+    ? { color: 'bg-indigo-500', icon: <Wifi size={14} />, label: 'DEMO' }
+    : {
+        connected:  { color: 'bg-emerald-500', icon: <Wifi size={14} />,     label: 'LIVE' },
+        offline:    { color: 'bg-rose-500',    icon: <WifiOff size={14} />,  label: 'OFFLINE' },
+        connecting: { color: 'bg-amber-500',   icon: <Loader2 size={14} className="animate-spin" />, label: 'CONNECTING' },
+      }[connectionStatus];
 
   return (
     <div className={`h-[100dvh] font-sans overflow-hidden flex flex-col relative transition-colors duration-300 ${isNightMode ? 'bg-zinc-950 text-zinc-100' : 'bg-slate-100/90 text-slate-900'}`}>
