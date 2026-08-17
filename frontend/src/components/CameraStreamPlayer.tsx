@@ -30,18 +30,18 @@ async function getModel(): Promise<cocoSsd.ObjectDetection> {
   return sharedModel;
 }
 
-// ── Ultra high-visibility neon tactical colors ────────────────────────────────
+// ── Clean & Balanced Tactical Colors ──────────────────────────────────────────
 const VEHICLE_CLASSES = new Set([
   'car', 'truck', 'bus', 'motorcycle', 'bicycle', 'person',
 ]);
 
 const CLASS_COLORS: Record<string, string> = {
-  car: '#00ff88',        // Vivid Neon Green
-  truck: '#ffb703',      // Vivid Neon Amber
-  bus: '#00d4ff',        // Vivid Electric Cyan
-  motorcycle: '#b5179e', // Vivid Neon Magenta
-  bicycle: '#4cc9f0',    // Vivid Bright Aqua
-  person: '#ff0055',     // Vivid Neon Pink
+  car: '#10b981',        // Clean Balanced Emerald Green
+  truck: '#f59e0b',      // Amber
+  bus: '#3b82f6',        // Tactical Blue
+  motorcycle: '#8b5cf6', // Soft Violet
+  bicycle: '#06b6d4',    // Soft Cyan
+  person: '#f43f5e',     // Soft Rose
 };
 
 interface Detection {
@@ -201,58 +201,48 @@ export function CameraStreamPlayer({
       detectionsRef.current.forEach((det, i) => {
         const [x, y, w, h] = det.bbox;
         const sx = x * scaleX, sy = y * scaleY, sw = w * scaleX, sh = h * scaleY;
-        const color = CLASS_COLORS[det.class] ?? '#00ff88';
+        const color = CLASS_COLORS[det.class] ?? '#10b981';
 
         ctx.save();
-        ctx.globalAlpha = 1.0; // 100% Solid Visibility
 
-        // 1. Neon Glow & Outer Box
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 8;
+        // 1. Sleek, Balanced Bounding Box
         ctx.strokeStyle = color;
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 1.75;
         ctx.strokeRect(sx, sy, sw, sh);
 
-        // Reset shadow for crisp lines
-        ctx.shadowBlur = 0;
-
-        // 2. High-Tech White Corner Brackets
-        const cl = Math.max(6, Math.min(12, sw * 0.25, sh * 0.25));
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
+        // 2. Subtle White Corner Accents
+        const cl = Math.min(8, sw * 0.2, sh * 0.2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 1.25;
         ctx.beginPath();
         // Top-left
         ctx.moveTo(sx, sy + cl); ctx.lineTo(sx, sy); ctx.lineTo(sx + cl, sy);
         // Bottom-right
         ctx.moveTo(sx + sw, sy + sh - cl); ctx.lineTo(sx + sw, sy + sh); ctx.lineTo(sx + sw - cl, sy + sh);
-        // Top-right
-        ctx.moveTo(sx + sw - cl, sy); ctx.lineTo(sx + sw, sy); ctx.lineTo(sx + sw, sy + cl);
-        // Bottom-left
-        ctx.moveTo(sx, sy + sh - cl); ctx.lineTo(sx, sy + sh); ctx.lineTo(sx + cl, sy + sh);
         ctx.stroke();
 
-        // 3. Crisp High-Contrast HUD Tag
-        ctx.font = `bold ${compact ? 10 : 11}px monospace`;
+        // 3. Crisp Balanced HUD Tag
+        ctx.font = `bold ${compact ? 9 : 10}px monospace`;
         const label = `${det.class.toUpperCase()} ${(det.score * 100).toFixed(0)}%`;
-        const lw = ctx.measureText(label).width + 12;
-        const lh = 17;
-        const ly = sy > lh + 4 ? sy - lh - 3 : sy + sh + 3;
+        const lw = ctx.measureText(label).width + 10;
+        const lh = 15;
+        const ly = sy > lh + 3 ? sy - lh - 2 : sy + sh + 2;
 
-        // Solid Black Pill
-        ctx.fillStyle = '#000000';
+        // Dark Translucent Glass Pill
+        ctx.fillStyle = 'rgba(10, 10, 14, 0.88)';
         ctx.fillRect(sx, ly, lw, lh);
         ctx.strokeStyle = color;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1;
         ctx.strokeRect(sx, ly, lw, lh);
 
-        // Neon Label Text
+        // Clean Emerald Label Text
         ctx.fillStyle = color;
-        ctx.fillText(label, sx + 6, ly + 12);
+        ctx.fillText(label, sx + 5, ly + 11);
 
-        // 4. Target ID Badge
-        ctx.fillStyle = '#ffffff';
-        ctx.font = `bold ${compact ? 8 : 9}px monospace`;
-        ctx.fillText(`#0${(i + 1)}`, sx + 4, sy + 11);
+        // 4. Target ID
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        ctx.font = `${compact ? 8 : 9}px monospace`;
+        ctx.fillText(`#${(i + 1)}`, sx + 3, sy + 10);
 
         ctx.restore();
       });
