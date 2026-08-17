@@ -16,9 +16,8 @@ frontend/dist/
 data/audit_log.json
 *.log
 
-# Media (>100MB blocked by GitHub) — videos must be hosted externally
-*.mp4
-frontend/public/videos/*.mp4
+# Root raw backup videos
+/*.mp4
 
 # OS
 .DS_Store
