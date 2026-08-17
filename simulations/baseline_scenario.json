@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-08-17T12:00:00",
+  "_description": "Baseline nominal traffic scenario: all nodes operating within normal parameters with moderate flow.",
+  "locations": [
+    {
+      "location_id": "WARDHA_ROAD",
+      "current_risk": 34,
+      "predicted_risk_15m": 38,
+      "confidence": 0.92,
+      "traffic_pressure": 0.45
+    },
+    {
+      "location_id": "ZERO_MILE",
+      "current_risk": 38,
+      "predicted_risk_15m": 42,
+      "confidence": 0.88,
+      "traffic_pressure": 0.50
+    },
+    {
+      "location_id": "SITABULDI",
+      "current_risk": 36,
+      "predicted_risk_15m": 40,
+      "confidence": 0.90,
+      "traffic_pressure": 0.48
+    },
+    {
+      "location_id": "MAHAL",
+      "current_risk": 32,
+      "predicted_risk_15m": 35,
+      "confidence": 0.85,
+      "traffic_pressure": 0.42
+    },
+    {
+      "location_id": "LAXMI_NAGAR",
+      "current_risk": 28,
+      "predicted_risk_15m": 32,
+      "confidence": 0.80,
+      "traffic_pressure": 0.38
+    },
+    {
+      "location_id": "MANEWADA",
+      "current_risk": 20,
+      "predicted_risk_15m": 24,
+      "confidence": 0.78,
+      "traffic_pressure": 0.25
+    }
+  ]
+}

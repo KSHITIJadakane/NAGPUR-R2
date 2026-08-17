@@ -1,0 +1,12 @@
+# Backend
+fastapi
+uvicorn
+pydantic
+networkx
+ortools
+python-dotenv
+httpx
+
+# M1 (Note: M1 is typically run in a separate environment due to heavy ML dependencies, but these are needed for basic functionality if run together)
+numpy
+scipy

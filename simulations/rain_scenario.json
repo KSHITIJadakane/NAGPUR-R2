@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-08-17T07:45:00",
+  "_description": "Rain scenario: heavy rainfall causing elevated baseline risk across all nodes. Traffic slow everywhere. Lower confidence due to sensor degradation in rain.",
+  "locations": [
+    {
+      "location_id": "WARDHA_ROAD",
+      "current_risk": 65,
+      "predicted_risk_15m": 70,
+      "confidence": 0.74,
+      "traffic_pressure": 0.78
+    },
+    {
+      "location_id": "ZERO_MILE",
+      "current_risk": 60,
+      "predicted_risk_15m": 68,
+      "confidence": 0.70,
+      "traffic_pressure": 0.72
+    },
+    {
+      "location_id": "SITABULDI",
+      "current_risk": 55,
+      "predicted_risk_15m": 65,
+      "confidence": 0.68,
+      "traffic_pressure": 0.70
+    },
+    {
+      "location_id": "MAHAL",
+      "current_risk": 58,
+      "predicted_risk_15m": 72,
+      "confidence": 0.66,
+      "traffic_pressure": 0.74
+    },
+    {
+      "location_id": "LAXMI_NAGAR",
+      "current_risk": 48,
+      "predicted_risk_15m": 58,
+      "confidence": 0.65,
+      "traffic_pressure": 0.62
+    },
+    {
+      "location_id": "MANEWADA",
+      "current_risk": 42,
+      "predicted_risk_15m": 55,
+      "confidence": 0.62,
+      "traffic_pressure": 0.58
+    }
+  ]
+}

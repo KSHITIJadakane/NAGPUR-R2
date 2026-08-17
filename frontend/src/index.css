@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-display: "Outfit", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  background-color: #f1f5f9; /* slate-100 soft, eye-comfortable background */
+  color: #0f172a; /* slate-900 */
+  font-family: var(--font-sans);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark body {
+  background-color: #09090b; /* zinc-950 */
+  color: #f4f4f5; /* zinc-100 */
+}
+
+/* Modern Soft Shadow for Panels */
+.panel-shadow {
+  box-shadow: 0 4px 24px -4px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+}
+
+/* Map Fixes */
+.leaflet-container {
+  background: transparent !important;
+  z-index: 0 !important;
+  border-radius: inherit;
+}
+.leaflet-control-container {
+  z-index: 10 !important;
+}
+
+/* Custom Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.no-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.no-scrollbar::-webkit-scrollbar-thumb {
+  background: #e4e4e7; /* zinc-200 */
+  border-radius: 10px;
+}
+.no-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #d4d4d8; /* zinc-300 */
+}
+
+/* Leaflet Scale Control Premium Styling */
+.leaflet-control-scale-line {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid #e4e4e7 !important;
+  border-top: none !important;
+  color: #52525b !important;
+  font-family: var(--font-sans) !important;
+  font-weight: 700 !important;
+  font-size: 10px !important;
+  padding: 4px 8px !important;
+  border-radius: 0 0 6px 6px !important;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08) !important;
+  text-shadow: none !important;
+}
+.leaflet-left .leaflet-control-scale {
+  margin-left: 24px !important;
+}
+.leaflet-bottom .leaflet-control-scale {
+  margin-bottom: 24px !important;
+}
+
+/* Custom Tooltip Overrides */
+.custom-node-tooltip::before {
+  display: none !important;
+}
+.leaflet-tooltip.custom-node-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}

@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-08-17T14:15:00",
+  "_description": "Accident scenario: sudden high-severity collision at Wardha Road. Causes immediate spike and rapid propagation downstream to Zero Mile and Sitabuldi.",
+  "locations": [
+    {
+      "location_id": "WARDHA_ROAD",
+      "current_risk": 95,
+      "predicted_risk_15m": 98,
+      "confidence": 0.96,
+      "traffic_pressure": 0.99
+    },
+    {
+      "location_id": "ZERO_MILE",
+      "current_risk": 45,
+      "predicted_risk_15m": 80,
+      "confidence": 0.88,
+      "traffic_pressure": 0.78
+    },
+    {
+      "location_id": "SITABULDI",
+      "current_risk": 40,
+      "predicted_risk_15m": 68,
+      "confidence": 0.80,
+      "traffic_pressure": 0.65
+    },
+    {
+      "location_id": "MAHAL",
+      "current_risk": 28,
+      "predicted_risk_15m": 42,
+      "confidence": 0.68,
+      "traffic_pressure": 0.40
+    },
+    {
+      "location_id": "LAXMI_NAGAR",
+      "current_risk": 35,
+      "predicted_risk_15m": 50,
+      "confidence": 0.70,
+      "traffic_pressure": 0.55
+    },
+    {
+      "location_id": "MANEWADA",
+      "current_risk": 18,
+      "predicted_risk_15m": 22,
+      "confidence": 0.60,
+      "traffic_pressure": 0.20
+    }
+  ]
+}

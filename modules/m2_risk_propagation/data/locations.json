@@ -1,0 +1,53 @@
+{
+  "_note": "Prototype pilot locations inspired by Nagpur landmarks (per CONTEXT.md). Not an authoritative GIS representation. Coordinates are approximate.",
+  "locations": [
+    {
+      "location_id": "WARDHA_ROAD",
+      "name": "Wardha Road",
+      "lat": 21.1189,
+      "lng": 79.0664,
+      "police_units": 0,
+      "required_units": 1
+    },
+    {
+      "location_id": "ZERO_MILE",
+      "name": "Zero Mile",
+      "lat": 21.1488,
+      "lng": 79.0882,
+      "police_units": 0,
+      "required_units": 1
+    },
+    {
+      "location_id": "SITABULDI",
+      "name": "Sitabuldi",
+      "lat": 21.1465,
+      "lng": 79.0825,
+      "police_units": 0,
+      "required_units": 2
+    },
+    {
+      "location_id": "MAHAL",
+      "name": "Mahal",
+      "lat": 21.1442,
+      "lng": 79.1098,
+      "police_units": 0,
+      "required_units": 1
+    },
+    {
+      "location_id": "LAXMI_NAGAR",
+      "name": "Laxmi Nagar",
+      "lat": 21.1235,
+      "lng": 79.0663,
+      "police_units": 0,
+      "required_units": 1
+    },
+    {
+      "location_id": "MANEWADA",
+      "name": "Manewada",
+      "lat": 21.1070,
+      "lng": 79.0970,
+      "police_units": 0,
+      "required_units": 1
+    }
+  ]
+}

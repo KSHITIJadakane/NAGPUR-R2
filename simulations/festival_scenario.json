@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-08-17T18:30:00",
+  "_description": "Festival scenario: large crowd gathering near Sitabuldi/Mahal. Wardha Road elevated from traffic. Risk Shadow expected at Zero Mile and Mahal.",
+  "locations": [
+    {
+      "location_id": "WARDHA_ROAD",
+      "current_risk": 78,
+      "predicted_risk_15m": 85,
+      "confidence": 0.91,
+      "traffic_pressure": 0.87
+    },
+    {
+      "location_id": "ZERO_MILE",
+      "current_risk": 52,
+      "predicted_risk_15m": 72,
+      "confidence": 0.83,
+      "traffic_pressure": 0.74
+    },
+    {
+      "location_id": "SITABULDI",
+      "current_risk": 74,
+      "predicted_risk_15m": 88,
+      "confidence": 0.89,
+      "traffic_pressure": 0.92
+    },
+    {
+      "location_id": "MAHAL",
+      "current_risk": 62,
+      "predicted_risk_15m": 82,
+      "confidence": 0.85,
+      "traffic_pressure": 0.88
+    },
+    {
+      "location_id": "LAXMI_NAGAR",
+      "current_risk": 38,
+      "predicted_risk_15m": 55,
+      "confidence": 0.72,
+      "traffic_pressure": 0.60
+    },
+    {
+      "location_id": "MANEWADA",
+      "current_risk": 22,
+      "predicted_risk_15m": 30,
+      "confidence": 0.65,
+      "traffic_pressure": 0.28
+    }
+  ]
+}

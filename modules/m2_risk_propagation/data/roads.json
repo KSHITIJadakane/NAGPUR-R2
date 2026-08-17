@@ -1,0 +1,54 @@
+{
+  "_note": "Directed edges = dominant traffic-flow direction for this scenario window. connection_strength (0-1) and travel_time_min are prototype assumptions, not measured data (per CONTEXT.md technical honesty requirement).",
+  "roads": [
+    {
+      "source": "WARDHA_ROAD",
+      "target": "ZERO_MILE",
+      "connection_strength": 0.75,
+      "travel_time_min": 4,
+      "road_type": "arterial"
+    },
+    {
+      "source": "WARDHA_ROAD",
+      "target": "LAXMI_NAGAR",
+      "connection_strength": 0.55,
+      "travel_time_min": 6,
+      "road_type": "collector"
+    },
+    {
+      "source": "ZERO_MILE",
+      "target": "SITABULDI",
+      "connection_strength": 0.70,
+      "travel_time_min": 3,
+      "road_type": "arterial"
+    },
+    {
+      "source": "ZERO_MILE",
+      "target": "MAHAL",
+      "connection_strength": 0.45,
+      "travel_time_min": 7,
+      "road_type": "collector"
+    },
+    {
+      "source": "SITABULDI",
+      "target": "MAHAL",
+      "connection_strength": 0.40,
+      "travel_time_min": 9,
+      "road_type": "collector"
+    },
+    {
+      "source": "LAXMI_NAGAR",
+      "target": "MANEWADA",
+      "connection_strength": 0.35,
+      "travel_time_min": 10,
+      "road_type": "local"
+    },
+    {
+      "source": "MANEWADA",
+      "target": "WARDHA_ROAD",
+      "connection_strength": 0.30,
+      "travel_time_min": 8,
+      "road_type": "local"
+    }
+  ]
+}
