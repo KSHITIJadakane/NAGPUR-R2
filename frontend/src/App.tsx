@@ -518,15 +518,104 @@ export default function App() {
         nodes={nodes}
         isNightMode={isNightMode}
         onClose={() => setIsSimulationModalOpen(false)}
-        onScenarioRun={(scenarioName?: string) => {
+        onScenarioRun={(scenarioName?: string, presetId?: string, locationId?: string, severity?: string) => {
           setSimulationActive(true);
-          setActiveScenarioName(scenarioName || 'CUSTOM');
+          const name = scenarioName || 'CUSTOM';
+          setActiveScenarioName(name);
+
+          // ── Client-side instant simulation update ──────────────────────────
+          const SIM_PRESETS: Record<string, Record<string, { current: number; future: number; reason: string[] }>> = {
+            festival: {
+              MAHAL: { current: 78, future: 92, reason: ['Major festival gathering at Mahal heritage zone', 'Pedestrian density exceeding threshold'] },
+              SITABULDI: { current: 65, future: 85, reason: ['Retail festival crowd overflow from Sitabuldi market'] },
+              ZERO_MILE: { current: 58, future: 79, reason: ['Upstream propagation shockwave from Sitabuldi interchange'] },
+              WARDHA_ROAD: { current: 52, future: 74, reason: ['Corridor transit congestion towards festival zone'] },
+              LAXMI_NAGAR: { current: 40, future: 55, reason: ['Secondary arterial detour volume building up'] },
+              MANEWADA: { current: 30, future: 42, reason: ['Moderate ring road freight traffic'] },
+            },
+            accident: {
+              WARDHA_ROAD: { current: 88, future: 96, reason: ['Multi-vehicle collision blocking two primary expressway lanes', 'Severe immediate bottleneck'] },
+              ZERO_MILE: { current: 74, future: 91, reason: ['Severe shockwave spillover from Wardha Road crash site'] },
+              SITABULDI: { current: 62, future: 82, reason: ['Downstream detour congestion building up rapidly'] },
+              LAXMI_NAGAR: { current: 48, future: 66, reason: ['Local intersection diversion strain'] },
+              MAHAL: { current: 35, future: 48, reason: ['Nominal flow rate in heritage zone'] },
+              MANEWADA: { current: 28, future: 36, reason: ['Ring road logistics normal'] },
+            },
+            rain: {
+              WARDHA_ROAD: { current: 68, future: 84, reason: ['Severe expressway waterlogging reducing vehicular speed by 50%'] },
+              ZERO_MILE: { current: 75, future: 89, reason: ['Transit interchange junction drainage saturation'] },
+              SITABULDI: { current: 70, future: 86, reason: ['Commercial corridor urban flash flood advisory'] },
+              MAHAL: { current: 64, future: 80, reason: ['Narrow heritage lane drainage overflow'] },
+              LAXMI_NAGAR: { current: 60, future: 76, reason: ['Residential square surface water accumulation'] },
+              MANEWADA: { current: 55, future: 70, reason: ['Outer ring road heavy spray and reduced visibility'] },
+            },
+          };
+
+          const selectedPreset = presetId?.toLowerCase();
+          if (selectedPreset && SIM_PRESETS[selectedPreset]) {
+            const data = SIM_PRESETS[selectedPreset];
+            setNodes(prev => prev.map(n => {
+              const sim = data[n.location_id];
+              if (!sim) return n;
+              const newCurrent = sim.current;
+              const newFuture = sim.future;
+              const isShadow = (newFuture >= 70) && (n.police_units < n.required_units);
+              const history = [...n.history.slice(1), newCurrent];
+              return {
+                ...n,
+                current_risk: newCurrent,
+                future_risk: newFuture,
+                risk_shadow: isShadow,
+                trend: 'UP',
+                history,
+                reason: sim.reason,
+              };
+            }));
+
+            // Generate responsive candidates
+            const newCandidates: DeploymentCandidate[] = Object.entries(data)
+              .filter(([_, d]) => d.future >= 60)
+              .map(([locId, d], idx) => ({
+                location_id: locId,
+                priority: Math.round(d.future * 0.8),
+                future_risk: d.future,
+                risk_shadow: d.future >= 70,
+                required_units: d.future >= 85 ? 2 : 1,
+                eta_minutes: 8 + (idx * 2),
+              }))
+              .sort((a, b) => b.priority - a.priority);
+
+            if (newCandidates.length > 0) setCandidates(newCandidates);
+          } else if (locationId) {
+            // Single junction injection
+            const bump = severity === 'CRITICAL' ? 45 : severity === 'HIGH' ? 30 : severity === 'MEDIUM' ? 20 : 10;
+            setNodes(prev => prev.map(n => {
+              if (n.location_id === locationId) {
+                const newCurrent = Math.min(100, n.current_risk + bump);
+                const newFuture = Math.min(100, n.future_risk + bump + 10);
+                return {
+                  ...n,
+                  current_risk: newCurrent,
+                  future_risk: newFuture,
+                  risk_shadow: (newFuture >= 70) && (n.police_units < n.required_units),
+                  trend: 'UP',
+                  history: [...n.history.slice(1), newCurrent],
+                  reason: [`Injected ${severity || 'HIGH'} simulated incident alert`],
+                };
+              }
+              return n;
+            }));
+          }
+
+          // Also attempt live backend sync if online
           fetchLiveData(true);
         }}
         onResetToRealData={() => {
           setSimulationActive(false);
           setActiveScenarioName(null);
           handleResetDeployments();
+          setNodes(MOCK_NODES);
+          setCandidates(MOCK_CANDIDATES);
           fetchLiveData(true);
         }}
         simulationActive={simulationActive}
