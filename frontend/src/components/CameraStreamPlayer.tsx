@@ -58,8 +58,18 @@ interface CameraStreamPlayerProps {
   onRiskUpdate?: (locationId: string, vehicleCount: number) => void;
 }
 
-// How often to run inference (ms). 500ms = ~2 detections/sec, low CPU impact.
-const INFERENCE_INTERVAL_MS = 500;
+// How often to run inference (ms). Fast 80ms (~12 fps) for instantaneous responsiveness.
+const INFERENCE_INTERVAL_MS = 80;
+
+interface TrackedBox {
+  id: number;
+  currentBbox: [number, number, number, number];
+  targetBbox: [number, number, number, number];
+  class: string;
+  score: number;
+  lastSeenTime: number;
+  alpha: number;
+}
 
 export function CameraStreamPlayer({
   node,
@@ -84,9 +94,10 @@ export function CameraStreamPlayer({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
-  const detectionsRef = useRef<Detection[]>([]);   // latest cached detections
-  const lastInferenceRef = useRef<number>(0);       // timestamp of last model.detect()
-  const inferringRef = useRef(false);               // guard: prevent overlapping calls
+  const trackedBoxesRef = useRef<TrackedBox[]>([]);
+  const nextTrackIdRef = useRef<number>(1);
+  const lastInferenceRef = useRef<number>(0);
+  const inferringRef = useRef(false);
 
   const camera = cameraConfig || node.camera;
 
@@ -150,7 +161,7 @@ export function CameraStreamPlayer({
     return () => { webcamStreamRef.current?.getTracks().forEach(t => t.stop()); };
   }, [camera?.type, camera?.enabled]);
 
-  // ── Main render loop — runs every animation frame, but inference is throttled
+  // ── Main render loop — runs at 60fps with smooth LERP tracking & fast inference ──
   const renderLoop = useCallback(() => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
@@ -163,8 +174,9 @@ export function CameraStreamPlayer({
     const ch = canvas.height;
     ctx.clearRect(0, 0, cw, ch);
 
-    // ── INFERENCE: only every INFERENCE_INTERVAL_MS ────────────────────────
     const now = performance.now();
+
+    // ── FAST INFERENCE TRIGGER ──────────────────────────────────────────────
     if (
       sharedModel &&
       video &&
@@ -178,28 +190,92 @@ export function CameraStreamPlayer({
       lastInferenceRef.current = now;
 
       sharedModel.detect(video).then(raw => {
-        detectionsRef.current = raw
-          .filter(d => VEHICLE_CLASSES.has(d.class) && d.score > 0.42)
+        const rawFiltered = raw
+          .filter(d => VEHICLE_CLASSES.has(d.class) && d.score > 0.40)
           .map(d => ({ bbox: d.bbox as [number, number, number, number], class: d.class, score: d.score }));
-        const count = detectionsRef.current.length;
-        setDetectionCount(count);
-        // Drive real risk updates from actual vehicle count
-        onRiskUpdate?.(node.location_id, count);
+
+        // Match detected objects with active tracked boxes for continuous smooth mapping
+        const currentTracks = trackedBoxesRef.current;
+        const matchedTrackIndices = new Set<number>();
+
+        rawFiltered.forEach(det => {
+          const [dx, dy, dw, dh] = det.bbox;
+          const detCenterX = dx + dw / 2;
+          const detCenterY = dy + dh / 2;
+
+          let bestMatchIdx = -1;
+          let bestDist = 120; // max pixel distance in original video space
+
+          currentTracks.forEach((track, tIdx) => {
+            if (matchedTrackIndices.has(tIdx)) return;
+            const [tx, ty, tw, th] = track.targetBbox;
+            const trackCenterX = tx + tw / 2;
+            const trackCenterY = ty + th / 2;
+            const dist = Math.hypot(detCenterX - trackCenterX, detCenterY - trackCenterY);
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestMatchIdx = tIdx;
+            }
+          });
+
+          if (bestMatchIdx !== -1) {
+            matchedTrackIndices.add(bestMatchIdx);
+            const track = currentTracks[bestMatchIdx];
+            track.targetBbox = det.bbox;
+            track.class = det.class;
+            track.score = det.score;
+            track.lastSeenTime = now;
+          } else {
+            // New track
+            currentTracks.push({
+              id: nextTrackIdRef.current++,
+              currentBbox: [...det.bbox],
+              targetBbox: [...det.bbox],
+              class: det.class,
+              score: det.score,
+              lastSeenTime: now,
+              alpha: 0.3,
+            });
+          }
+        });
+
+        // Filter out expired tracks (> 450ms without detection)
+        trackedBoxesRef.current = currentTracks.filter(t => (now - t.lastSeenTime) < 450);
+
+        const activeCount = trackedBoxesRef.current.filter(t => (now - t.lastSeenTime) < 250).length;
+        setDetectionCount(activeCount);
+        onRiskUpdate?.(node.location_id, activeCount);
         inferringRef.current = false;
       }).catch(() => { inferringRef.current = false; });
     }
 
-    // ── DRAW: use cached detections at full frame-rate ─────────────────────
-    if (showAiOverlay && video && video.videoWidth > 0 && detectionsRef.current.length > 0) {
+    // ── 60FPS SMOOTH LERP INTERPOLATION & DRAW ──────────────────────────────
+    if (showAiOverlay && video && video.videoWidth > 0 && trackedBoxesRef.current.length > 0) {
       const scaleX = cw / video.videoWidth;
       const scaleY = ch / video.videoHeight;
+      const lerpFactor = 0.48; // High responsiveness factor for tight tracking
 
-      detectionsRef.current.forEach((det, i) => {
-        const [x, y, w, h] = det.bbox;
+      trackedBoxesRef.current.forEach((track) => {
+        // LERP position towards target
+        track.currentBbox[0] += (track.targetBbox[0] - track.currentBbox[0]) * lerpFactor;
+        track.currentBbox[1] += (track.targetBbox[1] - track.currentBbox[1]) * lerpFactor;
+        track.currentBbox[2] += (track.targetBbox[2] - track.currentBbox[2]) * lerpFactor;
+        track.currentBbox[3] += (track.targetBbox[3] - track.currentBbox[3]) * lerpFactor;
+
+        // Fade in / out
+        const isRecent = (now - track.lastSeenTime) < 200;
+        track.alpha += ((isRecent ? 1.0 : 0.0) - track.alpha) * 0.25;
+
+        if (track.alpha < 0.05) return;
+
+        const [x, y, w, h] = track.currentBbox;
         const sx = x * scaleX, sy = y * scaleY, sw = w * scaleX, sh = h * scaleY;
-        const color = CLASS_COLORS[det.class] ?? '#10b981';
+        const color = CLASS_COLORS[track.class] ?? '#10b981';
 
-        // Box
+        ctx.save();
+        ctx.globalAlpha = track.alpha;
+
+        // Bounding Box
         ctx.strokeStyle = color;
         ctx.lineWidth = 2;
         ctx.strokeRect(sx, sy, sw, sh);
@@ -217,7 +293,7 @@ export function CameraStreamPlayer({
 
         // Label
         ctx.font = `bold ${compact ? 9 : 10}px monospace`;
-        const label = `${det.class.toUpperCase()} ${(det.score * 100).toFixed(0)}%`;
+        const label = `${track.class.toUpperCase()} ${(track.score * 100).toFixed(0)}%`;
         const lw = ctx.measureText(label).width + 10;
         const lh = 15;
         const ly = sy > lh + 2 ? sy - lh - 2 : sy + sh + 2;
@@ -230,13 +306,15 @@ export function CameraStreamPlayer({
         ctx.fillText(label, sx + 5, ly + 10);
 
         // ID
-        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
         ctx.font = `${compact ? 8 : 9}px monospace`;
-        ctx.fillText(`#${i + 1}`, sx + 3, sy + 10);
+        ctx.fillText(`#${track.id % 99 + 1}`, sx + 3, sy + 10);
+
+        ctx.restore();
       });
 
       // Subtle scanlines
-      ctx.fillStyle = 'rgba(0,0,0,0.04)';
+      ctx.fillStyle = 'rgba(0,0,0,0.03)';
       for (let i = 0; i < ch; i += 3) ctx.fillRect(0, i, cw, 1);
     }
 
