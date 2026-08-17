@@ -4,6 +4,7 @@ export interface CameraPreset {
   id: string;
   name: string;
   url: string;
+  fallbackUrl?: string;
   resolution: string;
   fps: number;
   desc: string;
@@ -15,6 +16,7 @@ export const PRESET_CAMERAS: CameraPreset[] = [
     id: 'wardha_expressway',
     name: 'Wardha Rd Expressway Flyover',
     url: '/videos/wardha_expressway.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-highway-traffic-in-the-evening-42848-large.mp4',
     resolution: '1080p FHD',
     fps: 30,
     desc: 'High-speed 4-lane corridor with real-time AI object tracking'
@@ -23,6 +25,7 @@ export const PRESET_CAMERAS: CameraPreset[] = [
     id: 'zero_mile_junction',
     name: 'Zero Mile Heritage Interchange',
     url: '/videos/zero_mile_junction.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-traffic-at-a-busy-intersection-43093-large.mp4',
     resolution: '4K UltraHD',
     fps: 25,
     desc: 'Central junction metro transit line with optical flow'
@@ -31,6 +34,7 @@ export const PRESET_CAMERAS: CameraPreset[] = [
     id: 'sitabuldi_market',
     name: 'Sitabuldi Commercial Corridor',
     url: '/videos/sitabuldi_market.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cars-moving-in-a-busy-city-avenue-42866-large.mp4',
     resolution: '1080p FHD',
     fps: 30,
     desc: 'High pedestrian density and vehicle retail corridor'
@@ -39,6 +43,7 @@ export const PRESET_CAMERAS: CameraPreset[] = [
     id: 'mahal_sector',
     name: 'Mahal Heritage Sector',
     url: '/videos/mahal_sector.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-traffic-in-a-street-in-an-aerial-view-42843-large.mp4',
     resolution: '720p HD',
     fps: 24,
     desc: 'Heritage cultural market arterial transit flow'
@@ -47,6 +52,7 @@ export const PRESET_CAMERAS: CameraPreset[] = [
     id: 'laxmi_nagar',
     name: 'Laxmi Nagar Square',
     url: '/videos/laxmi_nagar.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-cars-on-a-highway-at-night-43003-large.mp4',
     resolution: '1080p FHD',
     fps: 30,
     desc: 'Residential-commercial arterial vehicle flow'
@@ -55,6 +61,7 @@ export const PRESET_CAMERAS: CameraPreset[] = [
     id: 'manewada_ring_road',
     name: 'Manewada Ring Road Axis',
     url: '/videos/manewada_ring_road.mp4',
+    fallbackUrl: 'https://assets.mixkit.co/videos/preview/mixkit-aerial-view-of-city-traffic-at-night-42861-large.mp4',
     resolution: '1080p FHD',
     fps: 30,
     desc: 'Outer ring multi-lane logistics & freight transit'

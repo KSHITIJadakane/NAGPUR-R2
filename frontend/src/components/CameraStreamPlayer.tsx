@@ -90,20 +90,33 @@ export function CameraStreamPlayer({
 
   const camera = cameraConfig || node.camera;
 
-  const resolvedVideoUrl = (() => {
-    if (camera?.url) return camera.url;
-    if (camera?.preset_id) {
-      const p = PRESET_CAMERAS.find(pr => pr.id === camera.preset_id);
-      if (p) return p.url;
+  const [videoSrc, setVideoSrc] = useState<string>('');
+  const [triedFallback, setTriedFallback] = useState(false);
+
+  const preset = PRESET_CAMERAS.find(pr => pr.id === (camera?.preset_id || ''));
+
+  useEffect(() => {
+    setTriedFallback(false);
+    if (camera?.url) {
+      setVideoSrc(camera.url);
+    } else if (preset) {
+      setVideoSrc(preset.url);
+    } else {
+      setVideoSrc('/videos/wardha_expressway.mp4');
     }
-    return '/videos/wardha_expressway.mp4';
-  })();
+  }, [camera?.url, camera?.preset_id]);
 
-  // Seconds into the looped video to start at — makes two cameras on same
-  // video look like different live feeds
-  const videoStartOffset = camera?.videoStartOffset ?? 0;
+  const handleVideoError = () => {
+    if (!triedFallback && preset?.fallbackUrl) {
+      setTriedFallback(true);
+      setVideoSrc(preset.fallbackUrl);
+    } else {
+      setVideoLoaded(false);
+    }
+  };
 
-  const fps = camera?.fps ?? 30;
+  const videoStartOffset = camera?.videoStartOffset ?? preset?.videoStartOffset ?? 0;
+  const fps = camera?.fps ?? preset?.fps ?? 30;
 
   // ── Clock ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -340,19 +353,18 @@ export function CameraStreamPlayer({
           ) : (
             <video
               ref={videoRef}
-              src={resolvedVideoUrl}
+              src={videoSrc}
               autoPlay loop muted playsInline
+              crossOrigin="anonymous"
               className="absolute inset-0 w-full h-full object-cover"
               onLoadedData={e => {
                 const vid = e.currentTarget;
-                // Jump to the configured offset so two cameras on the same
-                // video file start at different points in the loop
                 if (videoStartOffset > 0 && vid.duration > videoStartOffset) {
                   vid.currentTime = videoStartOffset;
                 }
                 setVideoLoaded(true);
               }}
-              onError={() => setVideoLoaded(false)}
+              onError={handleVideoError}
             />
           )}
 
