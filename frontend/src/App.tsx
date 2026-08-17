@@ -353,24 +353,24 @@ export default function App() {
   return (
     <div className={`h-[100dvh] font-sans overflow-hidden flex flex-col relative transition-colors duration-300 ${isNightMode ? 'bg-zinc-950 text-zinc-100' : 'bg-slate-100/90 text-slate-900'}`}>
       {/* Header */}
-      <header className={`mx-6 mt-6 px-8 py-5 rounded-[24px] flex justify-between items-center shrink-0 z-50 panel-shadow border transition-colors duration-300 ${isNightMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200 shadow-sm'}`}>
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center border ${isNightMode ? 'bg-zinc-800 border-zinc-700' : 'bg-slate-50 border-slate-200'}`}>
-            <span className="w-3.5 h-3.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.4)]"></span>
+      <header className={`mx-2 sm:mx-6 mt-2 sm:mt-6 px-3 sm:px-8 py-3 sm:py-5 rounded-[18px] sm:rounded-[24px] flex flex-wrap sm:flex-nowrap justify-between items-center gap-2.5 sm:gap-4 shrink-0 z-50 panel-shadow border transition-colors duration-300 ${isNightMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+        <div className="flex items-center gap-2.5 sm:gap-4">
+          <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-[12px] sm:rounded-[16px] flex items-center justify-center border ${isNightMode ? 'bg-zinc-800 border-zinc-700' : 'bg-slate-50 border-slate-200'}`}>
+            <span className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_12px_rgba(244,63,94,0.4)]"></span>
           </div>
           <div className="flex flex-col">
-            <h1 className={`text-xl font-display font-bold tracking-tight leading-none ${isNightMode ? 'text-white' : 'text-slate-900'}`}>
+            <h1 className={`text-base sm:text-xl font-display font-bold tracking-tight leading-none ${isNightMode ? 'text-white' : 'text-slate-900'}`}>
               NAGPUR-R2
             </h1>
-            <span className={`text-sm font-medium mt-1 ${isNightMode ? 'text-zinc-400' : 'text-slate-500'}`}>Tactical Command Center</span>
+            <span className={`text-[10px] sm:text-sm font-medium mt-0.5 sm:mt-1 ${isNightMode ? 'text-zinc-400' : 'text-slate-500'}`}>Tactical Command Center</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap sm:flex-nowrap gap-1.5 sm:gap-3 ml-auto sm:ml-0">
           {/* Incident Simulator Modal Button */}
           <button
             onClick={() => setIsSimulationModalOpen(true)}
-            className={`px-3 py-1.5 rounded-[10px] border text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm ${
+            className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-[8px] sm:rounded-[10px] border text-[11px] sm:text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-all shadow-sm ${
               simulationActive
                 ? 'bg-amber-950/60 border-amber-600 text-amber-300 ring-2 ring-amber-500/40 shadow-amber-900/30 animate-pulse'
                 : isNightMode
@@ -379,7 +379,7 @@ export default function App() {
             }`}
             title="Open Incident & Scenario Simulator"
           >
-            <Zap size={14} className={simulationActive ? 'text-amber-400' : 'text-amber-600'} />
+            <Zap size={13} className={simulationActive ? 'text-amber-400' : 'text-amber-600'} />
             <span>SIMULATOR</span>
             {simulationActive ? (
               <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping ml-0.5" />
@@ -391,32 +391,32 @@ export default function App() {
           {/* CCTV Wall Button */}
           <button
             onClick={() => setIsCameraWallOpen(true)}
-            className={`px-3 py-1.5 rounded-[10px] border text-xs font-bold flex items-center gap-1.5 transition-colors ${
+            className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-[8px] sm:rounded-[10px] border text-[11px] sm:text-xs font-bold flex items-center gap-1 sm:gap-1.5 transition-colors ${
               isNightMode 
                 ? 'bg-zinc-800 border-zinc-700 text-rose-300 hover:bg-zinc-700' 
                 : 'bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100'
             }`}
             title="Open Live CCTV Command Wall"
           >
-            <Video size={14} className="text-rose-500" />
+            <Video size={13} className="text-rose-500" />
             <span>CCTV WALL</span>
           </button>
 
           {/* Connection status */}
-          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-[10px] border text-xs font-bold ${
+          <div className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-[8px] sm:rounded-[10px] border text-[10px] sm:text-xs font-bold ${
             isNightMode 
               ? 'bg-zinc-800 border-zinc-700 text-zinc-300' 
               : 'bg-white border-slate-200 text-slate-700'
           }`}>
-            <span className={`w-2 h-2 rounded-full ${statusBadge.color} ${connectionStatus === 'connecting' ? '' : 'animate-pulse'}`}></span>
+            <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${statusBadge.color} ${connectionStatus === 'connecting' ? '' : 'animate-pulse'}`}></span>
             {statusBadge.icon}
-            {statusBadge.label}
+            <span className="hidden sm:inline">{statusBadge.label}</span>
           </div>
 
           {/* Live/Demo toggle */}
           <button
             onClick={() => setIsLiveMode(v => !v)}
-            className={`px-3 py-1.5 rounded-[10px] border text-xs font-bold transition-colors ${
+            className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-[8px] sm:rounded-[10px] border text-[10px] sm:text-xs font-bold transition-colors ${
               isLiveMode 
                 ? (isNightMode ? 'bg-emerald-900/50 border-emerald-800 text-emerald-300' : 'bg-emerald-50 border-emerald-300 text-emerald-800') 
                 : (isNightMode ? 'bg-zinc-800 border-zinc-700 text-zinc-400' : 'bg-white border-slate-200 text-slate-600')
@@ -427,16 +427,17 @@ export default function App() {
 
           <button
             onClick={toggleNightMode}
-            className={`p-2.5 rounded-[12px] border transition-colors ${
+            className={`p-1.5 sm:p-2.5 rounded-[8px] sm:rounded-[12px] border transition-colors ${
               isNightMode 
                 ? 'bg-zinc-800 border-zinc-700 text-zinc-300 hover:text-white' 
                 : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             }`}
+            title="Toggle Night Mode"
           >
-            {isNightMode ? <Sun size={18} /> : <Moon size={18} />}
+            {isNightMode ? <Sun size={15} /> : <Moon size={15} />}
           </button>
 
-          <div className={`text-sm font-semibold font-mono px-5 py-2.5 rounded-[14px] border flex items-center gap-3 ${
+          <div className={`text-xs sm:text-sm font-semibold font-mono px-3 sm:px-5 py-1.5 sm:py-2.5 rounded-[10px] sm:rounded-[14px] border hidden md:flex items-center gap-2 sm:gap-3 ${
             isNightMode 
               ? 'bg-zinc-800 border-zinc-700 text-zinc-300' 
               : 'bg-white border-slate-200 text-slate-800'
@@ -448,25 +449,25 @@ export default function App() {
       </header>
 
       {/* Main Layout */}
-      <main className="flex-1 flex flex-col w-full p-6 gap-6 relative z-10 max-w-[1920px] mx-auto overflow-y-auto no-scrollbar">
+      <main className="flex-1 flex flex-col w-full p-2.5 sm:p-6 gap-3 sm:gap-6 relative z-10 max-w-[1920px] mx-auto overflow-y-auto no-scrollbar">
 
         {/* Map */}
-        <section className="w-full h-[54vh] min-h-[440px] flex flex-col shrink-0">
-          <div className={`flex-1 relative rounded-[24px] overflow-hidden panel-shadow border flex flex-col p-2 transition-colors duration-300 ${
+        <section className="w-full h-[38vh] sm:h-[52vh] min-h-[260px] sm:min-h-[440px] flex flex-col shrink-0">
+          <div className={`flex-1 relative rounded-[18px] sm:rounded-[24px] overflow-hidden panel-shadow border flex flex-col p-1.5 sm:p-2 transition-colors duration-300 ${
             isNightMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
           }`}>
-            <div className="px-5 py-4 flex items-center gap-3 shrink-0">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            <div className="px-3 sm:px-5 py-2.5 sm:py-4 flex items-center gap-2 sm:gap-3 shrink-0">
+              <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${
                 isNightMode ? 'bg-zinc-800 text-zinc-300' : 'bg-slate-100 text-slate-700'
               }`}>
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" /></svg>
               </div>
-              <h2 className={`text-base font-display font-bold ${isNightMode ? 'text-zinc-100' : 'text-slate-900'}`}>Tactical Map</h2>
+              <h2 className={`text-sm sm:text-base font-display font-bold ${isNightMode ? 'text-zinc-100' : 'text-slate-900'}`}>Tactical Map</h2>
               {connectionStatus === 'connected' && (
-                <span className="ml-auto text-xs text-emerald-500 font-semibold">● Live data</span>
+                <span className="ml-auto text-[11px] sm:text-xs text-emerald-500 font-semibold">● Live</span>
               )}
             </div>
-            <div className={`flex-1 relative rounded-[16px] overflow-hidden border min-h-[300px] ${
+            <div className={`flex-1 relative rounded-[12px] sm:rounded-[16px] overflow-hidden border min-h-[200px] sm:min-h-[300px] ${
               isNightMode ? 'border-zinc-800 bg-zinc-950' : 'border-slate-200 bg-slate-100'
             }`}>
               <div className="absolute inset-0">
