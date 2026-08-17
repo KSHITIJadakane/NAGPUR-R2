@@ -470,7 +470,7 @@ export function DeploymentPanel({
                         : (isNightMode ? 'bg-rose-950/30 border-rose-900/50 text-rose-300' : 'bg-rose-50 border-rose-200 text-rose-800')
                     }`}>
                       <div className="text-[9px] uppercase font-semibold mb-0.5">Coverage</div>
-                      <div className="text-xs font-bold">
+                      <div className="text-xs font-bold whitespace-nowrap">
                         {targetNode?.police_units ?? 0}/{cand.required_units}
                       </div>
                     </div>

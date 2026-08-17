@@ -762,8 +762,8 @@ export function RiskOverview({
                       {node.future_risk}%
                     </span>
                   </td>
-                  <td className="px-4 py-4 text-center">
-                    <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-bold font-mono border ${
+                  <td className="px-4 py-4 text-center whitespace-nowrap">
+                    <span className={`inline-flex items-center justify-center whitespace-nowrap px-3 py-1 rounded-lg text-xs font-bold font-mono border ${
                       node.police_units < node.required_units
                         ? (isNightMode ? 'bg-rose-950/50 text-rose-300 border-rose-800/60' : 'bg-rose-50 text-rose-700 border-rose-200')
                         : (isNightMode ? 'bg-emerald-950/50 text-emerald-300 border-emerald-800/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200')
