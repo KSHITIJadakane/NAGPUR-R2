@@ -35,8 +35,8 @@ export function CameraWallModal({
     <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md animate-in fade-in duration-200 flex flex-col overflow-hidden">
 
       {/* ── Sticky Header ─────────────────────────────────────────────────── */}
-      <div className="shrink-0 px-5 py-3 border-b border-zinc-800 bg-zinc-950/95 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="shrink-0 px-3.5 sm:px-5 py-2.5 sm:py-3 pt-11 sm:pt-3 border-b border-zinc-800 bg-zinc-950/95 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 shrink-0">
             <Grid size={18} />
           </div>

@@ -195,46 +195,47 @@ export function SimulationModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pt-12 sm:pt-4 pb-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
       
       {/* ── Modal Container ────────────────────────────────────────────────── */}
-      <div className={`w-full max-w-3xl rounded-[28px] border shadow-2xl overflow-hidden flex flex-col transition-all ${
+      <div className={`w-full max-w-3xl rounded-[20px] sm:rounded-[28px] border shadow-2xl overflow-hidden flex flex-col my-auto max-h-[86dvh] sm:max-h-[85vh] transition-all ${
         isNightMode ? 'bg-zinc-950 border-zinc-800 text-zinc-100' : 'bg-zinc-900 border-zinc-800 text-white'
       }`}>
 
         {/* ── Header ──────────────────────────────────────────────────────── */}
-        <div className="px-6 py-4.5 border-b border-zinc-800/90 bg-zinc-900/90 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
-              <Zap size={20} />
+        <div className="px-3.5 py-3 sm:px-6 sm:py-4.5 border-b border-zinc-800/90 bg-zinc-900/95 flex items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+              <Zap size={17} className="sm:hidden" />
+              <Zap size={20} className="hidden sm:block" />
             </div>
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h3 className="text-base font-display font-bold text-white">Tactical Incident &amp; Scenario Simulator</h3>
-                <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border ${
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="text-sm sm:text-base font-display font-bold text-white truncate">Scenario Simulator</h3>
+                <span className={`text-[9px] sm:text-[10px] font-mono font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border shrink-0 ${
                   simulationActive
                     ? 'bg-rose-950/70 text-rose-300 border-rose-700/60 animate-pulse'
                     : 'bg-emerald-950/70 text-emerald-300 border-emerald-700/60'
                 }`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${simulationActive ? 'bg-rose-400' : 'bg-emerald-400'}`} />
-                  {simulationActive ? `SIMULATION ACTIVE (${activeScenarioName || 'CUSTOM'})` : 'REAL DATA MODE'}
+                  {simulationActive ? `ACTIVE (${activeScenarioName || 'CUSTOM'})` : 'REAL DATA'}
                 </span>
               </div>
-              <p className="text-xs text-zinc-400">Inject custom incident spikes per junction or reset to live AI camera feeds</p>
+              <p className="text-[10px] sm:text-xs text-zinc-400 truncate hidden sm:block">Inject custom incident spikes per junction or reset to live AI camera feeds</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center bg-zinc-800 text-zinc-400 hover:text-white transition-colors border border-zinc-700 shrink-0"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center bg-zinc-800 text-zinc-400 hover:text-white transition-colors border border-zinc-700 shrink-0"
             title="Close Simulator"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
 
         {/* ── Body Content ─────────────────────────────────────────────────── */}
-        <div className="p-6 flex flex-col gap-6 overflow-y-auto max-h-[80vh]">
+        <div className="p-3 sm:p-6 flex flex-col gap-4 sm:gap-6 overflow-y-auto flex-1">
 
           {/* Section 1: Quick Mode Toggle (Back to Real Data / Quick Presets) */}
           <div className="bg-zinc-900/60 border border-zinc-800/80 rounded-2xl p-4 flex flex-col gap-3">
