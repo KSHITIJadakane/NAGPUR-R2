@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Polyline, ScaleControl, useMap, Toolti
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
-import { Shield, AlertTriangle, Video, Compass, Layers, Car, Plus, Minus, Maximize2, Satellite, Map as MapIcon, Lock, Unlock } from 'lucide-react';
+import { Shield, AlertTriangle, Video, Compass, Layers, Car, Plus, Minus, Maximize2, Satellite, Map as MapIcon, Lock, Unlock, X } from 'lucide-react';
 import { renderToString } from 'react-dom/server';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { RiskNode, Edge, Unit } from '../types';
@@ -297,6 +297,7 @@ interface RiskMapProps {
 
 export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeClick, onOpenCctvWall }: RiskMapProps) {
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [isLegendOpen, setIsLegendOpen] = useState(false);
   const [activeLayer, setActiveLayer] = useState<MapTileStyle>(isNightMode ? 'tactical_dark' : 'google_streets');
   const [showLayerMenu, setShowLayerMenu] = useState(false);
   const [showCtrlPrompt, setShowCtrlPrompt] = useState(false);
@@ -625,29 +626,71 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
         </button>
       </div>
 
-      {/* Bottom Right Legend */}
-      <div className={`absolute bottom-6 right-6 backdrop-blur-md border p-4 rounded-[16px] shadow-xl z-10 text-xs w-[210px] ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'bg-zinc-900/90 border-zinc-800 text-zinc-300' : 'bg-white/90 border-zinc-200 text-zinc-700'}`}>
-        <h4 className={`font-bold mb-3 ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'text-white' : 'text-zinc-900'}`}>Risk Legend</h4>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-rose-500 shrink-0"></div> Critical (81-100)</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-orange-500 shrink-0"></div> High (61-80)</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-amber-500 shrink-0"></div> Medium (31-60)</div>
-          <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-500 shrink-0"></div> Low (0-30)</div>
-        </div>
-        <div className={`mt-3 pt-3 border-t flex flex-col gap-2 ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'border-zinc-800' : 'border-zinc-200'}`}>
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full flex items-center justify-center border-2 ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'border-zinc-600 bg-zinc-800' : 'border-zinc-300 bg-zinc-100'}`}>
-              <Shield size={6} className={isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'text-zinc-400' : 'text-zinc-500'} />
+      {/* Bottom Right Legend (Collapsible / Toggleable for Mobile & Desktop) */}
+      <div className="absolute bottom-3 right-3 sm:bottom-6 sm:right-6 z-[400] flex flex-col items-end">
+        {!isLegendOpen ? (
+          <button
+            onClick={() => setIsLegendOpen(true)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold shadow-lg border backdrop-blur-md flex items-center gap-1.5 transition-all hover:scale-105 ${
+              isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite'
+                ? 'bg-zinc-900/90 border-zinc-700 text-zinc-200 hover:bg-zinc-800'
+                : 'bg-white/95 border-zinc-200 text-zinc-700 hover:bg-zinc-50 shadow-md'
+            }`}
+            title="Show Map Risk Legend"
+          >
+            <div className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
             </div>
-            <span>Unmanned Shadow</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full flex items-center justify-center border-2 ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'border-blue-700 bg-blue-900' : 'border-blue-400 bg-blue-600'}`}>
-              <Car size={6} className={isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'text-blue-200' : 'text-white'} />
+            <span>Legend</span>
+          </button>
+        ) : (
+          <div className={`backdrop-blur-md border p-3 sm:p-4 rounded-[16px] shadow-2xl text-xs w-[195px] sm:w-[215px] animate-in fade-in zoom-in-95 duration-150 ${
+            isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite'
+              ? 'bg-zinc-900/95 border-zinc-800 text-zinc-300'
+              : 'bg-white/95 border-zinc-200 text-zinc-700'
+          }`}>
+            <div className="flex items-center justify-between mb-2.5">
+              <h4 className={`font-bold ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'text-white' : 'text-zinc-900'}`}>
+                Risk Legend
+              </h4>
+              <button
+                onClick={() => setIsLegendOpen(false)}
+                className="w-5 h-5 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700/50 transition-colors"
+                title="Hide Legend"
+              >
+                <X size={13} />
+              </button>
             </div>
-            <span>Deployed Unit</span>
+            <div className="flex flex-col gap-1.5 text-[11px] sm:text-xs">
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0"></div> Critical (81-100)</div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-orange-500 shrink-0"></div> High (61-80)</div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></div> Medium (31-60)</div>
+              <div className="flex items-center gap-2"><div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div> Low (0-30)</div>
+            </div>
+            <div className={`mt-2.5 pt-2 border-t flex flex-col gap-1.5 text-[11px] sm:text-xs ${
+              isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'border-zinc-800' : 'border-zinc-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                <div className={`w-2.5 h-2.5 rounded-full flex items-center justify-center border ${
+                  isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'border-zinc-600 bg-zinc-800' : 'border-zinc-300 bg-zinc-100'
+                }`}>
+                  <Shield size={5} className={isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'text-zinc-400' : 'text-zinc-500'} />
+                </div>
+                <span>Unmanned Shadow</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className={`w-2.5 h-2.5 rounded-full flex items-center justify-center border ${
+                  isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'border-blue-700 bg-blue-900' : 'border-blue-400 bg-blue-600'
+                }`}>
+                  <Car size={5} className={isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'text-blue-200' : 'text-white'} />
+                </div>
+                <span>Deployed Unit</span>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
