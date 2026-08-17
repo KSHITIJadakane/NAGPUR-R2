@@ -125,6 +125,14 @@ export function SimulationModal({
   const [isExecuting, setIsExecuting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
+  // ── Helper to Close Modal & Scroll to Map ────────────────────────────────
+  const returnToDashboard = () => {
+    onClose();
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   // ── 1. Inject Incident on Node or Citywide ─────────────────────────────────
   const handleInjectIncident = async () => {
     setIsExecuting(true);
@@ -150,9 +158,12 @@ export function SimulationModal({
         setStatusMessage(`✓ Injected ${selectedSeverity} ${selectedType} at ${nodeName} (${SEVERITY_CONFIG[selectedSeverity].bump})`);
         onScenarioRun?.(`${selectedSeverity} ${selectedType}`, undefined, selectedLocation, selectedSeverity);
       }
+      // Return to dashboard map immediately
+      returnToDashboard();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Simulation executed';
       setStatusMessage(`✓ ${msg}`);
+      returnToDashboard();
     } finally {
       setIsExecuting(false);
     }
@@ -169,8 +180,10 @@ export function SimulationModal({
       } catch { /* client-side resilient reset */ }
       setStatusMessage('✓ Returned to Real Data — Live nominal baseline active');
       onResetToRealData?.();
+      returnToDashboard();
     } catch {
       onResetToRealData?.();
+      returnToDashboard();
     } finally {
       setIsExecuting(false);
     }
@@ -186,9 +199,11 @@ export function SimulationModal({
       } catch { /* client-side resilient simulation */ }
       setStatusMessage(`✓ Deployed ${label} scenario`);
       onScenarioRun?.(label, presetId);
+      returnToDashboard();
     } catch {
       setStatusMessage(`✓ Deployed ${label} scenario (Client Simulation)`);
       onScenarioRun?.(label, presetId);
+      returnToDashboard();
     } finally {
       setIsExecuting(false);
     }
