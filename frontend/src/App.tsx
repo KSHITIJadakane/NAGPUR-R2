@@ -452,7 +452,7 @@ export default function App() {
       <main className="flex-1 flex flex-col w-full p-2.5 sm:p-6 gap-3 sm:gap-6 relative z-10 max-w-[1920px] mx-auto overflow-y-auto no-scrollbar">
 
         {/* Map */}
-        <section className="w-full h-[38vh] sm:h-[52vh] min-h-[260px] sm:min-h-[440px] flex flex-col shrink-0">
+        <section className="w-full h-[46vh] sm:h-[52vh] min-h-[340px] sm:min-h-[440px] flex flex-col shrink-0">
           <div className={`flex-1 relative rounded-[18px] sm:rounded-[24px] overflow-hidden panel-shadow border flex flex-col p-1.5 sm:p-2 transition-colors duration-300 ${
             isNightMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
           }`}>

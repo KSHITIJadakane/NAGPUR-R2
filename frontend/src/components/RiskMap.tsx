@@ -9,8 +9,9 @@ import MarkerClusterGroup from 'react-leaflet-cluster';
 import { RiskNode, Edge, Unit } from '../types';
 
 // NAGPUR Center Coordinates (Zero Mile Landmark)
-const NAGPUR_CENTER: [number, number] = [21.1458, 79.0882];
-const DEFAULT_ZOOM = 13;
+const NAGPUR_CENTER: [number, number] = [21.1380, 79.0820];
+const getInitialZoom = () => (typeof window !== 'undefined' && window.innerWidth < 640 ? 12.2 : 13);
+
 
 type MapTileStyle = 'google_streets' | 'google_satellite' | 'tactical_dark' | 'osm_streets';
 
@@ -336,7 +337,7 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
 
   const handleResetView = () => {
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView(NAGPUR_CENTER, DEFAULT_ZOOM, { animate: true });
+      mapInstanceRef.current.setView(NAGPUR_CENTER, getInitialZoom(), { animate: true });
     }
   };
 
@@ -388,7 +389,7 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
     <div className={`w-full h-full relative select-none ${isNightMode ? 'bg-zinc-950' : 'bg-zinc-100'}`}>
       <MapContainer 
         center={NAGPUR_CENTER} 
-        zoom={DEFAULT_ZOOM} 
+        zoom={getInitialZoom()} 
         maxZoom={20}
         minZoom={10}
         zoomSnap={0.5}
@@ -505,11 +506,11 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
       )}
 
       {/* Top Left: Google Maps Precision Layer Switcher */}
-      <div className="absolute top-6 left-6 flex items-center gap-2 z-[400]">
+      <div className="absolute top-2 left-2 sm:top-5 sm:left-5 flex items-center gap-1.5 z-[400]">
         <div className="relative">
           <button
             onClick={() => setShowLayerMenu(!showLayerMenu)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-md border backdrop-blur-md ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-all shadow-md border backdrop-blur-md ${
               isNightMode 
                 ? 'bg-zinc-900/90 border-zinc-700 text-white hover:bg-zinc-800' 
                 : 'bg-white/90 border-zinc-200 text-zinc-800 hover:bg-zinc-50'
@@ -517,16 +518,21 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
             title="Switch Map Tile Source"
           >
             {activeLayer === 'google_satellite' ? (
-              <Satellite size={15} className="text-blue-500" />
+              <Satellite size={13} className="text-blue-500 shrink-0 sm:hidden" />
             ) : (
-              <MapIcon size={15} className="text-emerald-500" />
+              <MapIcon size={13} className="text-emerald-500 shrink-0 sm:hidden" />
             )}
-            <span>{currentTileConfig.name}</span>
+            {activeLayer === 'google_satellite' ? (
+              <Satellite size={15} className="text-blue-500 shrink-0 hidden sm:block" />
+            ) : (
+              <MapIcon size={15} className="text-emerald-500 shrink-0 hidden sm:block" />
+            )}
+            <span className="truncate max-w-[90px] sm:max-w-none">{currentTileConfig.name}</span>
           </button>
 
           {showLayerMenu && (
             <div 
-              className={`absolute top-full left-0 mt-2 w-48 rounded-xl shadow-2xl border backdrop-blur-md p-1.5 flex flex-col gap-1 z-50 animate-in fade-in zoom-in-95 ${
+              className={`absolute top-full left-0 mt-1.5 w-44 sm:w-48 rounded-xl shadow-2xl border backdrop-blur-md p-1 flex flex-col gap-0.5 z-50 animate-in fade-in zoom-in-95 ${
                 isNightMode ? 'bg-zinc-900/95 border-zinc-700 text-zinc-200' : 'bg-white/95 border-zinc-200 text-zinc-800'
               }`}
             >
@@ -540,7 +546,7 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
                       setActiveLayer(key);
                       setShowLayerMenu(false);
                     }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors ${
+                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors ${
                       isSelected
                         ? 'bg-emerald-600 text-white'
                         : isNightMode
@@ -559,16 +565,17 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
       </div>
 
       {/* Top Right Controls & Tactical Zoom Buttons */}
-      <div className="absolute top-6 right-6 flex flex-col gap-2.5 z-[400]">
-        <div className={`backdrop-blur-md border p-2 rounded-full shadow-md flex flex-col items-center justify-center w-10 h-10 ${isNightMode ? 'bg-zinc-900/90 border-zinc-700' : 'bg-white/90 border-zinc-200'}`}>
+      <div className="absolute top-2 right-2 sm:top-5 sm:right-5 flex flex-col gap-1.5 sm:gap-2 z-[400]">
+        {/* Compass (hidden on mobile to save space) */}
+        <div className={`backdrop-blur-md border p-2 rounded-full shadow-md hidden sm:flex flex-col items-center justify-center w-10 h-10 ${isNightMode ? 'bg-zinc-900/90 border-zinc-700' : 'bg-white/90 border-zinc-200'}`}>
           <Compass size={20} className={isNightMode ? 'text-zinc-400' : 'text-zinc-600'} />
           <span className={`text-[10px] font-bold mt-[-2px] ${isNightMode ? 'text-zinc-400' : 'text-zinc-600'}`}>N</span>
         </div>
 
-        {/* Scroll Zoom Lock Mode Toggle */}
+        {/* Scroll Zoom Lock Mode Toggle (desktop only) */}
         <button
           onClick={() => setFreeScrollZoom(!freeScrollZoom)}
-          className={`w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-colors border backdrop-blur-md ${
+          className={`w-10 h-10 rounded-full shadow-md hidden sm:flex items-center justify-center transition-colors border backdrop-blur-md ${
             freeScrollZoom
               ? (isNightMode ? 'bg-amber-950/80 border-amber-600 text-amber-300' : 'bg-amber-50 border-amber-300 text-amber-600')
               : (isNightMode ? 'bg-zinc-900/90 border-zinc-700 text-zinc-400 hover:bg-zinc-800' : 'bg-white/90 border-zinc-200 text-zinc-600 hover:bg-zinc-50')
@@ -579,50 +586,43 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
         </button>
 
         {/* Dedicated Precision Zoom In / Out Buttons */}
-        <div className={`flex flex-col rounded-2xl border shadow-md backdrop-blur-md overflow-hidden ${isNightMode ? 'bg-zinc-900/90 border-zinc-700' : 'bg-white/90 border-zinc-200'}`}>
+        <div className={`flex flex-col rounded-xl sm:rounded-2xl border shadow-md backdrop-blur-md overflow-hidden ${isNightMode ? 'bg-zinc-900/90 border-zinc-700' : 'bg-white/90 border-zinc-200'}`}>
           <button 
             onClick={handleZoomIn}
-            className={`w-10 h-10 flex items-center justify-center transition-colors border-b ${isNightMode ? 'border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white' : 'border-zinc-100 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900'}`}
-            title="Zoom In (or Ctrl + Scroll)"
+            className={`w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center transition-colors border-b ${isNightMode ? 'border-zinc-800 text-zinc-200 hover:bg-zinc-800 hover:text-white' : 'border-zinc-100 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900'}`}
+            title="Zoom In"
           >
-            <Plus size={18} />
+            <Plus size={14} className="sm:hidden" />
+            <Plus size={18} className="hidden sm:block" />
           </button>
           <button 
             onClick={handleZoomOut}
-            className={`w-10 h-10 flex items-center justify-center transition-colors ${isNightMode ? 'text-zinc-200 hover:bg-zinc-800 hover:text-white' : 'text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900'}`}
+            className={`w-7 h-7 sm:w-10 sm:h-10 flex items-center justify-center transition-colors ${isNightMode ? 'text-zinc-200 hover:bg-zinc-800 hover:text-white' : 'text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900'}`}
             title="Zoom Out"
           >
-            <Minus size={18} />
+            <Minus size={14} className="sm:hidden" />
+            <Minus size={18} className="hidden sm:block" />
           </button>
         </div>
 
         {/* Reset / Fit to Nagpur Overview */}
         <button 
           onClick={handleResetView}
-          className={`w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-colors border backdrop-blur-md ${isNightMode ? 'bg-zinc-900/90 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white' : 'bg-white/90 border-zinc-200 text-zinc-700 hover:bg-zinc-50'}`}
+          className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full shadow-md flex items-center justify-center transition-colors border backdrop-blur-md ${isNightMode ? 'bg-zinc-900/90 border-zinc-700 text-zinc-300 hover:bg-zinc-800 hover:text-white' : 'bg-white/90 border-zinc-200 text-zinc-700 hover:bg-zinc-50'}`}
           title="Reset to Nagpur Central View"
         >
-          <Maximize2 size={16} />
+          <Maximize2 size={12} className="sm:hidden" />
+          <Maximize2 size={16} className="hidden sm:block" />
         </button>
 
-        {/* CCTV Command Wall Button */}
-        {onOpenCctvWall && (
-          <button 
-            onClick={onOpenCctvWall}
-            className={`w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-colors border backdrop-blur-md ${isNightMode ? 'bg-zinc-900/90 border-zinc-700 text-rose-400 hover:bg-zinc-800 hover:text-rose-300' : 'bg-white/90 border-zinc-200 text-rose-600 hover:bg-zinc-50'}`}
-            title="Open CCTV Command Wall Matrix"
-          >
-            <Video size={18} />
-          </button>
-        )}
-        
         {/* Heatmap Toggle */}
         <button 
           onClick={() => setShowHeatmap(!showHeatmap)}
-          className={`w-10 h-10 rounded-full shadow-md flex items-center justify-center transition-colors border ${showHeatmap ? (isNightMode ? 'bg-white text-zinc-900 border-white' : 'bg-zinc-900 border-zinc-900 text-white') : (isNightMode ? 'bg-zinc-900/90 backdrop-blur-md border-zinc-700 text-zinc-400 hover:bg-zinc-800' : 'bg-white/90 backdrop-blur-md border-zinc-200 text-zinc-600 hover:bg-zinc-50')}`}
+          className={`w-7 h-7 sm:w-10 sm:h-10 rounded-full shadow-md flex items-center justify-center transition-colors border ${showHeatmap ? (isNightMode ? 'bg-white text-zinc-900 border-white' : 'bg-zinc-900 border-zinc-900 text-white') : (isNightMode ? 'bg-zinc-900/90 backdrop-blur-md border-zinc-700 text-zinc-400 hover:bg-zinc-800' : 'bg-white/90 backdrop-blur-md border-zinc-200 text-zinc-600 hover:bg-zinc-50')}`}
           title="Toggle Heatmap Density"
         >
-          <Layers size={18} />
+          <Layers size={13} className="sm:hidden" />
+          <Layers size={18} className="hidden sm:block" />
         </button>
       </div>
 
