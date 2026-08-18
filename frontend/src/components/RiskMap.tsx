@@ -265,27 +265,41 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
   const [showLayerMenu, setShowLayerMenu] = useState(false);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const enterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const leaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleNodeMouseEnter = (locationId: string) => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    setHoveredNodeId(locationId);
+    if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
+    if (enterTimeoutRef.current) clearTimeout(enterTimeoutRef.current);
+
+    // If already showing this node, stay open
+    if (hoveredNodeId === locationId) return;
+
+    // Hover intent: Wait 180ms intentional pause before popping open
+    enterTimeoutRef.current = setTimeout(() => {
+      setHoveredNodeId(locationId);
+    }, 180);
   };
 
   const handleNodeMouseLeave = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    hoverTimeoutRef.current = setTimeout(() => {
+    // If the cursor just brushed past quickly, cancel the enter timer immediately
+    if (enterTimeoutRef.current) clearTimeout(enterTimeoutRef.current);
+    if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
+
+    leaveTimeoutRef.current = setTimeout(() => {
       setHoveredNodeId(null);
-    }, 200); // Snappy 200ms grace period requested by user
+    }, 200); // 200ms grace period
   };
 
   const handleTooltipMouseEnter = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    if (enterTimeoutRef.current) clearTimeout(enterTimeoutRef.current);
+    if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
   };
 
   const handleTooltipMouseLeave = () => {
-    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-    hoverTimeoutRef.current = setTimeout(() => {
+    if (enterTimeoutRef.current) clearTimeout(enterTimeoutRef.current);
+    if (leaveTimeoutRef.current) clearTimeout(leaveTimeoutRef.current);
+    leaveTimeoutRef.current = setTimeout(() => {
       setHoveredNodeId(null);
     }, 150);
   };
@@ -428,7 +442,7 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
                     onMouseLeave={handleTooltipMouseLeave}
                     className="relative py-2 px-1 pointer-events-auto"
                   >
-                    <div className={`flex flex-col min-w-[210px] rounded-[16px] overflow-hidden border backdrop-blur-md transition-colors ${
+                    <div className={`flex flex-col min-w-[210px] rounded-[16px] overflow-hidden border backdrop-blur-md transition-colors animate-tooltip-in ${
                       isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
                         ? 'border-zinc-700 bg-zinc-900/95 shadow-[0_0_25px_rgba(0,0,0,0.8)] text-white' 
                         : 'border-zinc-200 bg-white/95 shadow-2xl text-zinc-900'
