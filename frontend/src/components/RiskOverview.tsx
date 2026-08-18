@@ -231,7 +231,7 @@ export function RiskOverview({
 
       {/* ── Selected Node Deep Dive Analysis Section ───────────────────────── */}
       {selectedNode && (
-        <div className={`border rounded-[28px] p-6 sm:p-8 shadow-xl relative overflow-hidden animate-in fade-in duration-200 transition-colors ${
+        <div id="optical-vision-telemetry" className={`border rounded-[28px] p-6 sm:p-8 shadow-xl relative overflow-hidden animate-in fade-in duration-200 transition-colors ${
           isNightMode 
             ? 'bg-zinc-900 border-zinc-800 text-zinc-50' 
             : 'bg-white border-slate-200 text-slate-900'

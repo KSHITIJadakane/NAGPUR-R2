@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useMemo, memo } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, ScaleControl, useMap, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, ScaleControl, useMap, Tooltip, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.heat';
-import { Shield, AlertTriangle, Video, Compass, Layers, Car, Plus, Minus, Maximize2, Satellite, Map as MapIcon, Lock, Unlock, X } from 'lucide-react';
+import { Shield, AlertTriangle, Video, Compass, Layers, Car, Plus, Minus, Maximize2, Satellite, Map as MapIcon, Lock, Unlock, X, ArrowDown } from 'lucide-react';
 import { renderToString } from 'react-dom/server';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { RiskNode, Edge, Unit } from '../types';
@@ -458,32 +458,63 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
                 click: () => onNodeClick && onNodeClick(node.location_id)
               }}
             >
-              <Tooltip 
-                direction="top" 
+              <Popup 
                 offset={[0, -20]}
-                className="!p-0 !border-0 !bg-transparent shadow-xl custom-node-tooltip"
+                autoClose={false}
+                closeOnClick={false}
+                className="!p-0 !border-0 !bg-transparent shadow-2xl custom-node-popup"
               >
-                <div className={`flex flex-col min-w-[180px] rounded-[12px] overflow-hidden border ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'border-zinc-700 shadow-[0_0_20px_rgba(0,0,0,0.6)]' : 'border-zinc-200 shadow-xl bg-white'}`}>
-                  <div className={`px-3 py-2 text-sm font-display font-bold border-b flex items-center justify-between gap-2 ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-zinc-100 border-zinc-200 text-zinc-900'}`}>
-                    <span>{node.name}</span>
+                <div className={`flex flex-col min-w-[210px] rounded-[16px] overflow-hidden border backdrop-blur-md transition-colors ${
+                  isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
+                    ? 'border-zinc-700 bg-zinc-900/95 shadow-[0_0_25px_rgba(0,0,0,0.8)] text-white' 
+                    : 'border-zinc-200 bg-white/95 shadow-2xl text-zinc-900'
+                }`}>
+                  <div className={`px-3.5 py-2.5 text-sm font-display font-bold border-b flex items-center justify-between gap-2 ${
+                    isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
+                      ? 'bg-zinc-800/90 border-zinc-700 text-white' 
+                      : 'bg-zinc-100/90 border-zinc-200 text-zinc-900'
+                  }`}>
+                    <span className="truncate">{node.name}</span>
                     {node.camera?.enabled && (
-                      <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-800">
+                      <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-800 shrink-0">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                         CAM
                       </span>
                     )}
                   </div>
-                  <div className={`px-3 py-2 flex items-center justify-between gap-4 ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'bg-zinc-900' : 'bg-white'}`}>
+                  <div className="px-3.5 py-2.5 flex items-center justify-between gap-4">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Risk Score</span>
-                    <span className={`text-sm font-bold font-mono ${node.current_risk >= 81 ? 'text-rose-500' : node.current_risk >= 61 ? 'text-orange-500' : node.current_risk >= 31 ? 'text-amber-500' : 'text-emerald-500'}`}>
+                    <span className={`text-base font-extrabold font-mono transition-all duration-300 ${
+                      node.current_risk >= 81 ? 'text-rose-500' : node.current_risk >= 61 ? 'text-orange-500' : node.current_risk >= 31 ? 'text-amber-500' : 'text-emerald-500'
+                    }`}>
                       {node.current_risk}/100
                     </span>
                   </div>
-                  <div className={`px-3 py-1 text-[10px] font-medium text-center border-t ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'bg-zinc-950/60 border-zinc-800 text-zinc-400' : 'bg-zinc-50 border-zinc-100 text-zinc-500'}`}>
-                    Click to open AI Camera Inspector
+                  <div className={`p-2 border-t ${
+                    isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
+                      ? 'bg-zinc-950/80 border-zinc-800' 
+                      : 'bg-zinc-50 border-zinc-100'
+                  }`}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onNodeClick) onNodeClick(node.location_id);
+                        setTimeout(() => {
+                          const el = document.getElementById('optical-vision-telemetry') || document.getElementById('location-directory');
+                          if (el) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          }
+                        }, 60);
+                      }}
+                      className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-md shadow-emerald-900/30 transition-all cursor-pointer"
+                    >
+                      <Video size={13} className="shrink-0" />
+                      <span>Open AI Optical Vision</span>
+                      <ArrowDown size={12} className="shrink-0 animate-bounce" />
+                    </button>
                   </div>
                 </div>
-              </Tooltip>
+              </Popup>
             </Marker>
           ))}
         </MarkerClusterGroup>

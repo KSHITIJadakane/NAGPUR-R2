@@ -75,7 +75,7 @@ html.dark body {
   margin-bottom: 24px !important;
 }
 
-/* Custom Tooltip Overrides */
+/* Custom Tooltip & Popup Overrides */
 .custom-node-tooltip::before {
   display: none !important;
 }
@@ -83,4 +83,24 @@ html.dark body {
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
+}
+
+.leaflet-popup.custom-node-popup .leaflet-popup-content-wrapper {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+.leaflet-popup.custom-node-popup .leaflet-popup-content {
+  margin: 0 !important;
+  line-height: inherit !important;
+}
+.leaflet-popup.custom-node-popup .leaflet-popup-tip-container {
+  display: none !important;
+}
+.leaflet-popup.custom-node-popup a.leaflet-popup-close-button {
+  top: 6px !important;
+  right: 6px !important;
+  color: #94a3b8 !important;
+  z-index: 30 !important;
 }
