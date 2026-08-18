@@ -59,8 +59,8 @@ interface CameraStreamPlayerProps {
   onRiskUpdate?: (locationId: string, vehicleCount: number) => void;
 }
 
-// Interval per stream (ms). With global mutex, this keeps mobile GPU lightweight & responsive.
-const INFERENCE_INTERVAL_MS = 140;
+// Interval per stream (ms). 240ms (~4.2 FPS) is extremely smooth for vehicle tracking while using near-zero CPU/GPU.
+const INFERENCE_INTERVAL_MS = 240;
 
 export function CameraStreamPlayer({
   node,
@@ -81,12 +81,25 @@ export function CameraStreamPlayer({
   const [modelStatus, setModelStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [detectionCount, setDetectionCount] = useState(0);
 
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const isVisibleRef = useRef<boolean>(true);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const webcamStreamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
   const detectionsRef = useRef<Detection[]>([]);
   const lastInferenceRef = useRef<number>(0);
+  const lastDetectionCountRef = useRef<number>(0);
+
+  // Stable refs to prevent RAF teardown/recreation on prop changes
+  const nodeRef = useRef(node);
+  nodeRef.current = node;
+  const onRiskUpdateRef = useRef(onRiskUpdate);
+  onRiskUpdateRef.current = onRiskUpdate;
+  const showAiOverlayRef = useRef(showAiOverlay);
+  showAiOverlayRef.current = showAiOverlay;
+  const modelStatusRef = useRef(modelStatus);
+  modelStatusRef.current = modelStatus;
 
   const camera = cameraConfig || node.camera;
 
@@ -117,6 +130,24 @@ export function CameraStreamPlayer({
 
   const videoStartOffset = camera?.videoStartOffset ?? preset?.videoStartOffset ?? 0;
   const fps = camera?.fps ?? preset?.fps ?? 30;
+
+  // ── Intersection Observer (Pause inference when scrolled off screen) ────────
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          isVisibleRef.current = entry.isIntersecting;
+        });
+      },
+      { threshold: 0.05 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   // ── Clock ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -150,14 +181,22 @@ export function CameraStreamPlayer({
     return () => { webcamStreamRef.current?.getTracks().forEach(t => t.stop()); };
   }, [camera?.type, camera?.enabled]);
 
-  // ── Main render loop — solid high-contrast neon boxes & lag-free execution ──
+  // ── Main render loop — silky 60fps canvas & light inference ────────────────
   const renderLoop = useCallback(() => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
-    if (!canvas) { rafRef.current = requestAnimationFrame(renderLoop); return; }
+
+    // Only render if container is in viewport
+    if (!isVisibleRef.current || !canvas) {
+      rafRef.current = requestAnimationFrame(renderLoop);
+      return;
+    }
 
     const ctx = canvas.getContext('2d');
-    if (!ctx) { rafRef.current = requestAnimationFrame(renderLoop); return; }
+    if (!ctx) {
+      rafRef.current = requestAnimationFrame(renderLoop);
+      return;
+    }
 
     const cw = canvas.width;
     const ch = canvas.height;
@@ -165,12 +204,12 @@ export function CameraStreamPlayer({
 
     const now = performance.now();
 
-    // ── SEQUENTIAL GLOBAL MUTEX INFERENCE (Prevents Mobile GPU Throttle) ───
+    // ── SEQUENTIAL GLOBAL MUTEX INFERENCE (Ultra lightweight CPU/GPU footprint) ─
     if (
       sharedModel &&
       video &&
       !globalInferring &&
-      showAiOverlay &&
+      showAiOverlayRef.current &&
       video.readyState >= 2 &&
       video.videoWidth > 0 &&
       (now - lastInferenceRef.current) > INFERENCE_INTERVAL_MS
@@ -185,16 +224,21 @@ export function CameraStreamPlayer({
 
         detectionsRef.current = filtered;
         const count = filtered.length;
-        setDetectionCount(count);
-        onRiskUpdate?.(node.location_id, count);
+
+        // Only trigger React state change if count actually changed to save CPU cycles
+        if (count !== lastDetectionCountRef.current) {
+          lastDetectionCountRef.current = count;
+          setDetectionCount(count);
+          onRiskUpdateRef.current?.(nodeRef.current.location_id, count);
+        }
         globalInferring = false;
       }).catch(() => { 
         globalInferring = false; 
       });
     }
 
-    // ── 100% SOLID, HIGH-CONTRAST VIVID NEON DRAWING ────────────────────────
-    if (showAiOverlay && video && video.videoWidth > 0 && detectionsRef.current.length > 0) {
+    // ── 100% SOLID, HIGH-CONTRAST VIVID DRAWING ──────────────────────────────
+    if (showAiOverlayRef.current && video && video.videoWidth > 0 && detectionsRef.current.length > 0) {
       const scaleX = cw / video.videoWidth;
       const scaleY = ch / video.videoHeight;
 
@@ -253,7 +297,7 @@ export function CameraStreamPlayer({
     }
 
     // Loading indicator
-    if (showAiOverlay && modelStatus === 'loading') {
+    if (showAiOverlayRef.current && modelStatusRef.current === 'loading') {
       ctx.fillStyle = 'rgba(0,0,0,0.6)';
       ctx.fillRect(cw / 2 - 72, ch / 2 - 12, 144, 24);
       ctx.fillStyle = '#a78bfa';
@@ -262,7 +306,7 @@ export function CameraStreamPlayer({
     }
 
     rafRef.current = requestAnimationFrame(renderLoop);
-  }, [showAiOverlay, node.current_risk, node.location_id, modelStatus, compact, onRiskUpdate]);
+  }, [compact]);
 
   useEffect(() => {
     rafRef.current = requestAnimationFrame(renderLoop);
@@ -297,7 +341,7 @@ export function CameraStreamPlayer({
   const isStreamActive = camera?.enabled !== false;
 
   return (
-    <div className={`relative flex flex-col w-full rounded-2xl overflow-hidden border ${isNightMode ? 'bg-zinc-950 border-zinc-800' : 'bg-zinc-900 border-zinc-800'} ${compact ? 'h-[210px]' : 'h-[370px]'}`}>
+    <div ref={containerRef} className={`relative flex flex-col w-full rounded-2xl overflow-hidden border ${isNightMode ? 'bg-zinc-950 border-zinc-800' : 'bg-zinc-900 border-zinc-800'} ${compact ? 'h-[210px]' : 'h-[370px]'}`}>
 
       {/* Top HUD */}
       <div className="absolute top-0 inset-x-0 z-30 flex items-center justify-between px-3 py-2 bg-gradient-to-b from-black/90 via-black/50 to-transparent pointer-events-none">
