@@ -198,8 +198,22 @@ export function CameraStreamPlayer({
       return;
     }
 
+    // Dynamically match canvas resolution to rendered DOM container
+    const rect = canvas.getBoundingClientRect();
+    const targetW = Math.round(rect.width);
+    const targetH = Math.round(rect.height);
+    if (targetW > 0 && targetH > 0 && (canvas.width !== targetW || canvas.height !== targetH)) {
+      canvas.width = targetW;
+      canvas.height = targetH;
+    }
+
     const cw = canvas.width;
     const ch = canvas.height;
+    if (cw === 0 || ch === 0) {
+      rafRef.current = requestAnimationFrame(renderLoop);
+      return;
+    }
+
     ctx.clearRect(0, 0, cw, ch);
 
     const now = performance.now();
@@ -237,14 +251,42 @@ export function CameraStreamPlayer({
       });
     }
 
-    // ── 100% SOLID, HIGH-CONTRAST VIVID DRAWING ──────────────────────────────
+    // ── PIXEL-PERFECT OBJECT-COVER PROJECTION ────────────────────────────────
     if (showAiOverlayRef.current && video && video.videoWidth > 0 && detectionsRef.current.length > 0) {
-      const scaleX = cw / video.videoWidth;
-      const scaleY = ch / video.videoHeight;
+      const videoRatio = video.videoWidth / video.videoHeight;
+      const containerRatio = cw / ch;
+
+      let renderWidth: number;
+      let renderHeight: number;
+      let offsetX: number;
+      let offsetY: number;
+
+      if (containerRatio > videoRatio) {
+        // Container is wider than video: video fills width, cropped top/bottom
+        renderWidth = cw;
+        renderHeight = cw / videoRatio;
+        offsetX = 0;
+        offsetY = (ch - renderHeight) / 2;
+      } else {
+        // Container is taller than video: video fills height, cropped left/right
+        renderWidth = ch * videoRatio;
+        renderHeight = ch;
+        offsetX = (cw - renderWidth) / 2;
+        offsetY = 0;
+      }
+
+      const scale = renderWidth / video.videoWidth;
 
       detectionsRef.current.forEach((det, i) => {
         const [x, y, w, h] = det.bbox;
-        const sx = x * scaleX, sy = y * scaleY, sw = w * scaleX, sh = h * scaleY;
+        const sx = x * scale + offsetX;
+        const sy = y * scale + offsetY;
+        const sw = w * scale;
+        const sh = h * scale;
+
+        // Skip if outside visible viewport
+        if (sx + sw < 0 || sx > cw || sy + sh < 0 || sy > ch) return;
+
         const color = CLASS_COLORS[det.class] ?? '#10b981';
 
         ctx.save();
@@ -424,9 +466,8 @@ export function CameraStreamPlayer({
             />
           )}
 
-          {/* AI overlay canvas (transparent, draw-only) */}
-          <canvas ref={canvasRef} width={640} height={360}
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
+          {/* AI overlay canvas (transparent, 1:1 pixel-matched draw-only) */}
+          <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
         </div>
 
         {/* Telemetry footer */}
