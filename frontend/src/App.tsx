@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { MOCK_NODES, MOCK_EDGES, MOCK_CANDIDATES, MOCK_AUDIT_LOG } from './data';
 import { RiskMap } from './components/RiskMap';
 import { RiskOverview } from './components/RiskOverview';
