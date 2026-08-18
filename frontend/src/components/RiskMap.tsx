@@ -275,10 +275,10 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
     // If already showing this node, stay open
     if (hoveredNodeId === locationId) return;
 
-    // Hover intent: Wait 180ms intentional pause before popping open
+    // Hover intent: Wait 480ms intentional pause before showing (standard system/VS Code tooltip timing)
     enterTimeoutRef.current = setTimeout(() => {
       setHoveredNodeId(locationId);
-    }, 180);
+    }, 480);
   };
 
   const handleNodeMouseLeave = () => {
