@@ -577,19 +577,6 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
           <span className={`text-[10px] font-bold mt-[-2px] ${isNightMode ? 'text-zinc-400' : 'text-zinc-600'}`}>N</span>
         </div>
 
-        {/* Scroll Zoom Lock Mode Toggle (desktop only) */}
-        <button
-          onClick={() => setFreeScrollZoom(!freeScrollZoom)}
-          className={`w-10 h-10 rounded-full shadow-md hidden sm:flex items-center justify-center transition-colors border backdrop-blur-md ${
-            freeScrollZoom
-              ? (isNightMode ? 'bg-amber-950/80 border-amber-600 text-amber-300' : 'bg-amber-50 border-amber-300 text-amber-600')
-              : (isNightMode ? 'bg-zinc-900/90 border-zinc-700 text-zinc-400 hover:bg-zinc-800' : 'bg-white/90 border-zinc-200 text-zinc-600 hover:bg-zinc-50')
-          }`}
-          title={freeScrollZoom ? 'Scroll Zoom: Free Active (Click to require Ctrl)' : 'Scroll Zoom: Ctrl Required (Click for Free Wheel Zoom)'}
-        >
-          {freeScrollZoom ? <Unlock size={16} /> : <Lock size={16} />}
-        </button>
-
         {/* Dedicated Precision Zoom In / Out Buttons */}
         <div className={`flex flex-col rounded-xl sm:rounded-2xl border shadow-md backdrop-blur-md overflow-hidden ${isNightMode ? 'bg-zinc-900/90 border-zinc-700' : 'bg-white/90 border-zinc-200'}`}>
           <button 
