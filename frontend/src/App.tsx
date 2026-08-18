@@ -216,22 +216,23 @@ export default function App() {
   };
 
   // ── AI Camera Risk Update ────────────────────────────────────────────────
-  // Uniform objective formula for ALL nodes:
-  // Every node is calculated identically from live detected vehicle count:
-  // Base highway baseline: 12%
-  // Each detected vehicle contributes ~3.5% risk
-  // e.g. 2 cars -> 19%, 5 cars -> 29%, 8 cars -> 40%, 12 cars -> 54%, 16 cars -> 68%
+  const lastRiskUpdateTimeRef = useRef<Record<string, number>>({});
+
   const handleRiskUpdate = useCallback((locationId: string, vehicleCount: number) => {
+    const now = Date.now();
+    const last = lastRiskUpdateTimeRef.current[locationId] || 0;
+    if (now - last < 600) return; // Throttle to smooth 600ms pacing
+    lastRiskUpdateTimeRef.current[locationId] = now;
+
     setNodes(prev => prev.map(n => {
       if (n.location_id !== locationId) return n;
 
       const target = Math.max(10, Math.min(95, Math.round(12 + vehicleCount * 3.5)));
 
-      // Smooth step towards target
+      // Smooth integer step towards target
       const diff = target - n.current_risk;
-      const step = Math.sign(diff) * Math.min(1.5, Math.abs(diff) * 0.2);
-      const newRisk = Math.round((n.current_risk + step) * 10) / 10;
-      const clamped = Math.max(5, Math.min(95, Math.round(newRisk)));
+      const step = Math.sign(diff) * Math.min(2, Math.ceil(Math.abs(diff) * 0.3));
+      const clamped = Math.max(5, Math.min(95, n.current_risk + step));
 
       if (clamped === n.current_risk) return n;
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, ScaleControl, useMap, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -270,6 +270,86 @@ const createCustomIcon = (risk: number, isShadow: boolean, hasCamera: boolean, i
   });
 };
 
+// ── Icon Cache to Prevent Leaflet DOM Destruction and Tooltip Blinking ────────
+const iconCache = new Map<string, L.DivIcon>();
+
+const getCustomIcon = (risk: number, isShadow: boolean, hasCamera: boolean, isNightMode: boolean) => {
+  let tier = 'low';
+  if (risk >= 81) tier = 'critical';
+  else if (risk >= 61) tier = 'high';
+  else if (risk >= 31) tier = 'medium';
+
+  const key = `${tier}_${isShadow ? 'shadow' : 'normal'}_${hasCamera ? 'cam' : 'nocam'}_${isNightMode ? 'night' : 'day'}`;
+  let icon = iconCache.get(key);
+  if (!icon) {
+    icon = createCustomIcon(risk, isShadow, hasCamera, isNightMode);
+    iconCache.set(key, icon);
+  }
+  return icon;
+};
+
+// ── Memoized Node Marker Component ───────────────────────────────────────────
+const TacticalNodeMarker = memo(({
+  node,
+  isNightMode,
+  activeLayer,
+  onNodeClick,
+}: {
+  node: RiskNode;
+  isNightMode: boolean;
+  activeLayer: MapTileStyle;
+  onNodeClick?: (id: string) => void;
+}) => {
+  const isNightTheme = isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite';
+
+  const icon = useMemo(() => {
+    return getCustomIcon(node.current_risk, node.risk_shadow, !!node.camera?.enabled, isNightTheme);
+  }, [
+    node.current_risk >= 81 ? 'crit' : node.current_risk >= 61 ? 'hi' : node.current_risk >= 31 ? 'med' : 'low',
+    node.risk_shadow,
+    !!node.camera?.enabled,
+    isNightTheme,
+  ]);
+
+  return (
+    <Marker 
+      position={[node.lat, node.lng]}
+      icon={icon}
+      riskData={node.current_risk}
+      eventHandlers={{
+        click: () => onNodeClick && onNodeClick(node.location_id)
+      }}
+    >
+      <Tooltip 
+        direction="top" 
+        offset={[0, -20]}
+        className="!p-0 !border-0 !bg-transparent shadow-xl custom-node-tooltip"
+      >
+        <div className={`flex flex-col min-w-[180px] rounded-[12px] overflow-hidden border ${isNightTheme ? 'border-zinc-700 shadow-[0_0_20px_rgba(0,0,0,0.6)]' : 'border-zinc-200 shadow-xl bg-white'}`}>
+          <div className={`px-3 py-2 text-sm font-display font-bold border-b flex items-center justify-between gap-2 ${isNightTheme ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-zinc-100 border-zinc-200 text-zinc-900'}`}>
+            <span>{node.name}</span>
+            {node.camera?.enabled && (
+              <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-800">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                CAM
+              </span>
+            )}
+          </div>
+          <div className={`px-3 py-2 flex items-center justify-between gap-4 ${isNightTheme ? 'bg-zinc-900' : 'bg-white'}`}>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Risk Score</span>
+            <span className={`text-sm font-bold font-mono ${node.current_risk >= 81 ? 'text-rose-500' : node.current_risk >= 61 ? 'text-orange-500' : node.current_risk >= 31 ? 'text-amber-500' : 'text-emerald-500'}`}>
+              {node.current_risk}/100
+            </span>
+          </div>
+          <div className={`px-3 py-1 text-[10px] font-medium text-center border-t ${isNightTheme ? 'bg-zinc-950/60 border-zinc-800 text-zinc-400' : 'bg-zinc-50 border-zinc-100 text-zinc-500'}`}>
+            Click to open AI Camera Inspector
+          </div>
+        </div>
+      </Tooltip>
+    </Marker>
+  );
+});
+
 const createUnitIcon = () => {
   const html = renderToString(
     <div className="relative group flex items-center justify-center w-14 h-14">
@@ -431,42 +511,13 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
           spiderfyOnMaxZoom={true}
         >
           {!showHeatmap && nodes.map(node => (
-            <Marker 
-              key={node.location_id} 
-              position={[node.lat, node.lng]}
-              icon={createCustomIcon(node.current_risk, node.risk_shadow, !!node.camera?.enabled, isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite')}
-              riskData={node.current_risk}
-              eventHandlers={{
-                click: () => onNodeClick && onNodeClick(node.location_id)
-              }}
-            >
-              <Tooltip 
-                direction="top" 
-                offset={[0, -20]}
-                className="!p-0 !border-0 !bg-transparent shadow-xl custom-node-tooltip"
-              >
-                <div className={`flex flex-col min-w-[180px] rounded-[12px] overflow-hidden border ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'border-zinc-700 shadow-[0_0_20px_rgba(0,0,0,0.6)]' : 'border-zinc-200 shadow-xl bg-white'}`}>
-                  <div className={`px-3 py-2 text-sm font-display font-bold border-b flex items-center justify-between gap-2 ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'bg-zinc-800 border-zinc-700 text-white' : 'bg-zinc-100 border-zinc-200 text-zinc-900'}`}>
-                    <span>{node.name}</span>
-                    {node.camera?.enabled && (
-                      <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-800">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        CAM
-                      </span>
-                    )}
-                  </div>
-                  <div className={`px-3 py-2 flex items-center justify-between gap-4 ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'bg-zinc-900' : 'bg-white'}`}>
-                    <span className={`text-[11px] font-bold uppercase tracking-wider text-zinc-500`}>Risk Score</span>
-                    <span className={`text-sm font-bold font-mono ${node.current_risk >= 81 ? 'text-rose-500' : node.current_risk >= 61 ? 'text-orange-500' : node.current_risk >= 31 ? 'text-amber-500' : 'text-emerald-500'}`}>
-                      {node.current_risk}/100
-                    </span>
-                  </div>
-                  <div className={`px-3 py-1 text-[10px] font-medium text-center border-t ${isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' ? 'bg-zinc-950/60 border-zinc-800 text-zinc-400' : 'bg-zinc-50 border-zinc-100 text-zinc-500'}`}>
-                    Click to open AI Camera Inspector
-                  </div>
-                </div>
-              </Tooltip>
-            </Marker>
+            <TacticalNodeMarker
+              key={node.location_id}
+              node={node}
+              isNightMode={isNightMode}
+              activeLayer={activeLayer}
+              onNodeClick={onNodeClick}
+            />
           ))}
         </MarkerClusterGroup>
 
