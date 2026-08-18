@@ -322,7 +322,31 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
   const [showCtrlPrompt, setShowCtrlPrompt] = useState(false);
   const [freeScrollZoom, setFreeScrollZoom] = useState(false);
   const mapInstanceRef = useRef<L.Map | null>(null);
-  const promptTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleNodeMouseEnter = (locationId: string) => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    setHoveredNodeId(locationId);
+  };
+
+  const handleNodeMouseLeave = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredNodeId(null);
+    }, 400); // 400ms grace period so user can easily glide mouse across the gap
+  };
+
+  const handleTooltipMouseEnter = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+  };
+
+  const handleTooltipMouseLeave = () => {
+    if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredNodeId(null);
+    }, 200);
+  };
 
   // Sync default layer if night mode changes and user is on default
   useEffect(() => {
@@ -455,71 +479,80 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
               icon={getCustomIcon(node.current_risk, node.risk_shadow, !!node.camera?.enabled, isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite')}
               riskData={node.current_risk}
               eventHandlers={{
-                click: () => onNodeClick && onNodeClick(node.location_id)
+                click: () => onNodeClick && onNodeClick(node.location_id),
+                mouseover: () => handleNodeMouseEnter(node.location_id),
+                mouseout: () => handleNodeMouseLeave(),
               }}
             >
-              <Tooltip 
-                direction="top" 
-                offset={[0, -14]}
-                interactive={true}
-                opacity={1}
-                className="!p-0 !border-0 !bg-transparent shadow-2xl custom-node-tooltip"
-              >
-                <div className="relative pb-3.5 pointer-events-auto">
-                  <div className={`flex flex-col min-w-[210px] rounded-[16px] overflow-hidden border backdrop-blur-md transition-colors ${
-                    isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
-                      ? 'border-zinc-700 bg-zinc-900/95 shadow-[0_0_25px_rgba(0,0,0,0.8)] text-white' 
-                      : 'border-zinc-200 bg-white/95 shadow-2xl text-zinc-900'
-                  }`}>
-                    <div className={`px-3.5 py-2.5 text-sm font-display font-bold border-b flex items-center justify-between gap-2 ${
+              {hoveredNodeId === node.location_id && (
+                <Tooltip 
+                  direction="top" 
+                  offset={[0, -14]}
+                  permanent={true}
+                  interactive={true}
+                  opacity={1}
+                  className="!p-0 !border-0 !bg-transparent shadow-2xl custom-node-tooltip"
+                >
+                  <div 
+                    onMouseEnter={handleTooltipMouseEnter}
+                    onMouseLeave={handleTooltipMouseLeave}
+                    className="relative pb-6 pointer-events-auto"
+                  >
+                    <div className={`flex flex-col min-w-[210px] rounded-[16px] overflow-hidden border backdrop-blur-md transition-colors ${
                       isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
-                        ? 'bg-zinc-800/90 border-zinc-700 text-white' 
-                        : 'bg-zinc-100/90 border-zinc-200 text-zinc-900'
+                        ? 'border-zinc-700 bg-zinc-900/95 shadow-[0_0_25px_rgba(0,0,0,0.8)] text-white' 
+                        : 'border-zinc-200 bg-white/95 shadow-2xl text-zinc-900'
                     }`}>
-                      <span className="truncate">{node.name}</span>
-                      {node.camera?.enabled && (
-                        <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-800 shrink-0">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          CAM
-                        </span>
-                      )}
-                    </div>
-                    <div className="px-3.5 py-2.5 flex items-center justify-between gap-4">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Risk Score</span>
-                      <span className={`text-base font-extrabold font-mono transition-all duration-300 ${
-                        node.current_risk >= 81 ? 'text-rose-500' : node.current_risk >= 61 ? 'text-orange-500' : node.current_risk >= 31 ? 'text-amber-500' : 'text-emerald-500'
+                      <div className={`px-3.5 py-2.5 text-sm font-display font-bold border-b flex items-center justify-between gap-2 ${
+                        isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
+                          ? 'bg-zinc-800/90 border-zinc-700 text-white' 
+                          : 'bg-zinc-100/90 border-zinc-200 text-zinc-900'
                       }`}>
-                        {node.current_risk}/100
-                      </span>
+                        <span className="truncate">{node.name}</span>
+                        {node.camera?.enabled && (
+                          <span className="flex items-center gap-1 text-[10px] text-emerald-400 font-mono font-bold bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-800 shrink-0">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            CAM
+                          </span>
+                        )}
+                      </div>
+                      <div className="px-3.5 py-2.5 flex items-center justify-between gap-4">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">Risk Score</span>
+                        <span className={`text-base font-extrabold font-mono transition-all duration-300 ${
+                          node.current_risk >= 81 ? 'text-rose-500' : node.current_risk >= 61 ? 'text-orange-500' : node.current_risk >= 31 ? 'text-amber-500' : 'text-emerald-500'
+                        }`}>
+                          {node.current_risk}/100
+                        </span>
+                      </div>
+                      <div className={`p-2 border-t ${
+                        isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
+                          ? 'bg-zinc-950/80 border-zinc-800' 
+                          : 'bg-zinc-50 border-zinc-100'
+                      }`}>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onNodeClick) onNodeClick(node.location_id);
+                            setTimeout(() => {
+                              const el = document.getElementById('optical-vision-telemetry') || document.getElementById('location-directory');
+                              if (el) {
+                                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              }
+                            }, 60);
+                          }}
+                          className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-md shadow-emerald-900/30 transition-all cursor-pointer"
+                        >
+                          <Video size={13} className="shrink-0" />
+                          <span>Open AI Optical Vision</span>
+                          <ArrowDown size={12} className="shrink-0 animate-bounce" />
+                        </button>
+                      </div>
                     </div>
-                    <div className={`p-2 border-t ${
-                      isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
-                        ? 'bg-zinc-950/80 border-zinc-800' 
-                        : 'bg-zinc-50 border-zinc-100'
-                    }`}>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onNodeClick) onNodeClick(node.location_id);
-                          setTimeout(() => {
-                            const el = document.getElementById('optical-vision-telemetry') || document.getElementById('location-directory');
-                            if (el) {
-                              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }
-                          }, 60);
-                        }}
-                        className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-95 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-md shadow-emerald-900/30 transition-all cursor-pointer"
-                      >
-                        <Video size={13} className="shrink-0" />
-                        <span>Open AI Optical Vision</span>
-                        <ArrowDown size={12} className="shrink-0 animate-bounce" />
-                      </button>
-                    </div>
+                    {/* Generous invisible Hover Bridge so the mouse NEVER leaves the hitbox while moving from marker to card */}
+                    <div className="absolute -bottom-8 inset-x-0 h-10 bg-transparent pointer-events-auto" />
                   </div>
-                  {/* Invisible Hover Bridge so cursor never exits hover zone */}
-                  <div className="absolute -bottom-3.5 inset-x-0 h-5 bg-transparent pointer-events-auto" />
-                </div>
-              </Tooltip>
+                </Tooltip>
+              )}
             </Marker>
           ))}
         </MarkerClusterGroup>
