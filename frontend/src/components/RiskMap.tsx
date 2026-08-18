@@ -276,7 +276,7 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     hoverTimeoutRef.current = setTimeout(() => {
       setHoveredNodeId(null);
-    }, 400); // 400ms grace period so user can easily glide mouse across the gap
+    }, 200); // Snappy 200ms grace period requested by user
   };
 
   const handleTooltipMouseEnter = () => {
@@ -287,7 +287,7 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
     hoverTimeoutRef.current = setTimeout(() => {
       setHoveredNodeId(null);
-    }, 200);
+    }, 150);
   };
 
   // Sync default layer if night mode changes and user is on default
@@ -416,8 +416,8 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
             >
               {hoveredNodeId === node.location_id && (
                 <Tooltip 
-                  direction="top" 
-                  offset={[0, -14]}
+                  direction="auto" 
+                  offset={[0, -6]}
                   permanent={true}
                   interactive={true}
                   opacity={1}
@@ -426,7 +426,7 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
                   <div 
                     onMouseEnter={handleTooltipMouseEnter}
                     onMouseLeave={handleTooltipMouseLeave}
-                    className="relative pb-6 pointer-events-auto"
+                    className="relative py-2 px-1 pointer-events-auto"
                   >
                     <div className={`flex flex-col min-w-[210px] rounded-[16px] overflow-hidden border backdrop-blur-md transition-colors ${
                       isNightMode || activeLayer === 'tactical_dark' || activeLayer === 'google_satellite' 
@@ -478,8 +478,8 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
                         </button>
                       </div>
                     </div>
-                    {/* Generous invisible Hover Bridge so the mouse NEVER leaves the hitbox while moving from marker to card */}
-                    <div className="absolute -bottom-8 inset-x-0 h-10 bg-transparent pointer-events-auto" />
+                    {/* Multi-directional Hover Bridge extending all around the card to prevent hover loss */}
+                    <div className="absolute -inset-4 bg-transparent pointer-events-auto -z-10" />
                   </div>
                 </Tooltip>
               )}
