@@ -74,68 +74,12 @@ const HeatmapLayer = ({ points, isNightMode }: { points: [number, number, number
   return null;
 };
 
-// Map Controller for Gesture Handling (Ctrl + Scroll to Zoom)
-interface MapControllerProps {
-  freeScrollZoom: boolean;
-  onShowCtrlPrompt: () => void;
-  setMapRef: (map: L.Map) => void;
-}
-
-const MapGestureHandler = ({ freeScrollZoom, onShowCtrlPrompt, setMapRef }: MapControllerProps) => {
+// Map Instance Capturer for zoom controls and view resets
+const MapInstanceCapturer = ({ onMapReady }: { onMapReady: (map: L.Map) => void }) => {
   const map = useMap();
-
   useEffect(() => {
-    setMapRef(map);
-    const container = map.getContainer();
-
-    const handleWheel = (e: WheelEvent) => {
-      if (freeScrollZoom || e.ctrlKey || e.metaKey) {
-        // Prevent default page scroll and zoom cleanly
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (e.deltaY < 0) {
-          map.zoomIn(1);
-        } else if (e.deltaY > 0) {
-          map.zoomOut(1);
-        }
-      } else {
-        // Prompt user to use Ctrl + Scroll
-        onShowCtrlPrompt();
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Control' || e.key === 'Meta') {
-        map.scrollWheelZoom.enable();
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Control' || e.key === 'Meta') {
-        if (!freeScrollZoom) {
-          map.scrollWheelZoom.disable();
-        }
-      }
-    };
-
-    if (freeScrollZoom) {
-      map.scrollWheelZoom.enable();
-    } else {
-      map.scrollWheelZoom.disable();
-    }
-
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    return () => {
-      container.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [map, freeScrollZoom, onShowCtrlPrompt, setMapRef]);
-
+    onMapReady(map);
+  }, [map, onMapReady]);
   return null;
 };
 
@@ -319,8 +263,6 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
   const [isLegendOpen, setIsLegendOpen] = useState(false);
   const [activeLayer, setActiveLayer] = useState<MapTileStyle>(isNightMode ? 'tactical_dark' : 'google_streets');
   const [showLayerMenu, setShowLayerMenu] = useState(false);
-  const [showCtrlPrompt, setShowCtrlPrompt] = useState(false);
-  const [freeScrollZoom, setFreeScrollZoom] = useState(false);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -356,14 +298,6 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
       setActiveLayer('google_streets');
     }
   }, [isNightMode]);
-
-  const triggerCtrlPrompt = () => {
-    setShowCtrlPrompt(true);
-    if (promptTimerRef.current) clearTimeout(promptTimerRef.current);
-    promptTimerRef.current = setTimeout(() => {
-      setShowCtrlPrompt(false);
-    }, 1600);
-  };
 
   const handleZoomIn = () => {
     if (mapInstanceRef.current) {
@@ -438,7 +372,7 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
         zoomDelta={1}
         style={{ height: '100%', width: '100%', zIndex: 0, background: 'transparent' }}
         zoomControl={false}
-        scrollWheelZoom={false}
+        scrollWheelZoom={true}
       >
         <TileLayer
           key={activeLayer}
@@ -450,11 +384,7 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
         
         <ScaleControl position="bottomleft" imperial={false} />
         
-        <MapGestureHandler 
-          freeScrollZoom={freeScrollZoom}
-          onShowCtrlPrompt={triggerCtrlPrompt} 
-          setMapRef={(map) => { mapInstanceRef.current = map; }}
-        />
+        <MapInstanceCapturer onMapReady={(map) => { mapInstanceRef.current = map; }} />
 
         {/* Tactical Edges */}
         {!showHeatmap && edges.map((edge, index) => {
@@ -579,18 +509,6 @@ export function RiskMap({ nodes, edges, units = [], isNightMode = false, onNodeC
           />
         )}
       </MapContainer>
-
-      {/* Google Maps Style "Ctrl + Scroll" Alert Overlay */}
-      {showCtrlPrompt && (
-        <div className="absolute inset-0 z-[500] pointer-events-none flex items-center justify-center transition-opacity duration-300 animate-in fade-in">
-          <div className="bg-zinc-900/90 text-white px-5 py-3 rounded-2xl backdrop-blur-md border border-zinc-700 shadow-2xl flex items-center gap-3 text-sm font-medium">
-            <div className="px-2 py-0.5 rounded bg-zinc-800 border border-zinc-600 font-mono text-xs text-emerald-400 font-bold shadow-inner">
-              Ctrl
-            </div>
-            <span>+ Scroll to zoom the map</span>
-          </div>
-        </div>
-      )}
 
       {/* Top Left: Google Maps Precision Layer Switcher */}
       <div className="absolute top-2 left-2 sm:top-5 sm:left-5 flex items-center gap-1.5 z-[400]">
